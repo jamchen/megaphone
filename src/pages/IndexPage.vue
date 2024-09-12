@@ -1,47 +1,53 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+    <q-btn
+      @click="transcribeAudio"
+      label="Transcribe Audio"
+      color="primary"
+    ></q-btn>
+    <div v-if="progress">{{ progress }}</div>
+    <div v-if="segments">
+      <div v-for="segment in segments" :key="segment.id">
+        {{ segment.text }}
+      </div>
+    </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import { useQuasar } from 'quasar';
 
 defineOptions({
-  name: 'IndexPage'
+  name: 'IndexPage',
 });
 
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1'
-  },
-  {
-    id: 2,
-    content: 'ct2'
-  },
-  {
-    id: 3,
-    content: 'ct3'
-  },
-  {
-    id: 4,
-    content: 'ct4'
-  },
-  {
-    id: 5,
-    content: 'ct5'
-  }
-]);
+const $q = useQuasar();
 
-const meta = ref<Meta>({
-  totalCount: 1200
-});
+const progress = ref<string | null>(null);
+const segments = ref<Array<Segment> | null>(null);
+
+const transcribeAudio = () => {
+  const audioFilePath = 'audio.wav';
+
+  window.electronAPI
+    .transcribeAudio(audioFilePath, (progressMessage) => {
+      progress.value = progressMessage;
+    })
+    .then((resultSegments) => {
+      segments.value = resultSegments;
+      $q.notify({
+        type: 'positive',
+        message: 'Transcription complete',
+      });
+      progress.value = null;
+    })
+    .catch((error) => {
+      $q.notify({
+        type: 'negative',
+        message: error,
+      });
+      progress.value = null;
+    });
+};
 </script>

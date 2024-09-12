@@ -28,7 +28,7 @@ const progress = ref<string | null>(null);
 const segments = ref<Array<Segment> | null>(null);
 
 const transcribeAudio = () => {
-  const audioFilePath = 'audio.wav';
+  const audioFilePath = '/Users/jamchen/Developer/code/megaphone/audio.wav';
 
   window.electronAPI
     .transcribeAudio(audioFilePath, (progressMessage) => {

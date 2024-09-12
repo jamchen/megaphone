@@ -182,6 +182,7 @@ module.exports = configure(function (/* ctx */) {
         // protocol: 'myapp://path',
         // Windows only
         // win32metadata: { ... }
+        extraResource: ['python'],
       },
 
       builder: {

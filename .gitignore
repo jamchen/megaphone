@@ -37,4 +37,4 @@ yarn-error.log*
 .env.local*
 
 # Virtual environment
-/venv
+/python/venv

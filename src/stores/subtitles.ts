@@ -9,6 +9,7 @@ interface Subtitle {
 export const useSubtitlesStore = defineStore('subtitles', {
   state: () => ({
     subtitles: [] as Subtitle[],
+    selectedSubtitle: null as Subtitle | null,
   }),
 
   getters: {},
@@ -19,6 +20,15 @@ export const useSubtitlesStore = defineStore('subtitles', {
     },
     removeSubtitle(subtitle: Subtitle) {
       this.subtitles = this.subtitles.filter((s) => s !== subtitle);
+    },
+    clearSubtitles() {
+      this.subtitles = [];
+    },
+    selectSubtitle(subtitle: Subtitle) {
+      this.selectedSubtitle = subtitle;
+    },
+    deselectSubtitle() {
+      this.selectedSubtitle = null;
     },
   },
 });

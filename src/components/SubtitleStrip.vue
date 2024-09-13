@@ -7,6 +7,9 @@
           :key="index"
           class="q-pa-sx q-ml-sm q-mt-sx"
           style="width: 200px; height: 127px"
+          :class="{ 'selected-border': subtitle === selectedSubtitle }"
+          :bordered="subtitle === selectedSubtitle"
+          @click="selectSubtitle(subtitle)"
         >
           <q-card-section>
             {{ subtitle.text }}
@@ -21,12 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 
 const store = useSubtitlesStore();
 
-const subtitles = computed(() => store.subtitles);
+const { subtitles, selectedSubtitle } = storeToRefs(store);
+const selectSubtitle = store.selectSubtitle;
 
 const formatTime = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
@@ -43,4 +47,8 @@ const formatTime = (seconds: number) => {
 };
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.selected-border {
+  border: 6px solid $primary; /* Adjust the color as needed */
+}
+</style>

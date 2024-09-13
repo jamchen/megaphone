@@ -10,6 +10,7 @@
           :class="{ 'selected-border': subtitle === selectedSubtitle }"
           :bordered="subtitle === selectedSubtitle"
           @click="selectSubtitle(subtitle)"
+          ref="subtitleCards"
         >
           <q-card-section>
             {{ subtitle.text }}
@@ -24,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useTemplateRef, watch, nextTick, ComponentPublicInstance } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 
@@ -31,6 +33,24 @@ const store = useSubtitlesStore();
 
 const { subtitles, selectedSubtitle } = storeToRefs(store);
 const selectSubtitle = store.selectSubtitle;
+const subtitleCards =
+  useTemplateRef<ComponentPublicInstance<HTMLElement>[]>('subtitleCards');
+
+watch(selectedSubtitle, async (newSubtitle) => {
+  if (newSubtitle) {
+    await nextTick();
+    const index = subtitles.value.findIndex(
+      (subtitle) => subtitle === newSubtitle
+    );
+    if (index !== -1) {
+      const selectedCard = subtitleCards.value?.[index];
+      selectedCard?.$el.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }
+});
 
 const formatTime = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);

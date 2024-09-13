@@ -1,22 +1,22 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <q-btn
-      @click="transcribeAudio"
-      label="Transcribe Audio"
-      color="primary"
-    ></q-btn>
-    <div v-if="progress">{{ progress }}</div>
-    <div v-if="segments">
-      <div v-for="segment in segments" :key="segment.id">
-        {{ segment.text }}
-      </div>
+  <q-page class="items-center justify-evenly">
+    <div class="row">
+      <q-btn
+        @click="transcribeAudio"
+        label="Transcribe Audio"
+        color="primary"
+      ></q-btn>
+      <div v-if="progress">{{ progress }}</div>
     </div>
+    <SubtitleStrip />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useSubtitlesStore } from 'stores/subtitles';
+import SubtitleStrip from 'components/SubtitleStrip.vue';
 
 defineOptions({
   name: 'IndexPage',
@@ -24,8 +24,10 @@ defineOptions({
 
 const $q = useQuasar();
 
+const store = useSubtitlesStore();
+const addSubtitle = store.addSubtitle;
+
 const progress = ref<string | null>(null);
-const segments = ref<Array<Segment> | null>(null);
 
 const transcribeAudio = () => {
   const audioFilePath = '/Users/jamchen/Developer/code/megaphone/audio.wav';
@@ -35,7 +37,13 @@ const transcribeAudio = () => {
       progress.value = progressMessage;
     })
     .then((resultSegments) => {
-      segments.value = resultSegments;
+      resultSegments.forEach((segment) => {
+        addSubtitle({
+          start: segment.start,
+          end: segment.end,
+          text: segment.text,
+        });
+      });
       $q.notify({
         type: 'positive',
         message: 'Transcription complete',

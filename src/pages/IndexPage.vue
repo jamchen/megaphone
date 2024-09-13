@@ -4,7 +4,7 @@
       <input type="file" @change="onFileChange" accept="video/*" />
     </div>
     <div class="row" v-if="videoUrl">
-      <video ref="videoElement" :src="videoUrl" controls width="1280"></video>
+      <VideoPlayer :videoUrl="videoUrl" />
     </div>
     <div class="row">
       <q-btn
@@ -27,11 +27,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useSubtitlesStore } from 'stores/subtitles';
 import SubtitleStrip from 'components/SubtitleStrip.vue';
+import VideoPlayer from 'components/VideoPlayer.vue';
 
 defineOptions({
   name: 'IndexPage',
@@ -54,13 +54,7 @@ const modelSizes = [
 ];
 const selectedModelSize = ref<WhisperModelSize>('small');
 
-// const videoUrl = URL.createObjectURL(
-//   new File('/Users/jamchen/Developer/code/megaphone/video.mp4')
-// );
-
 const videoUrl = ref<string | null>(null);
-const videoElement = ref<HTMLVideoElement | null>(null);
-const { selectedSubtitle } = storeToRefs(store);
 
 const onFileChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -69,12 +63,6 @@ const onFileChange = (event: Event) => {
     videoUrl.value = URL.createObjectURL(file);
   }
 };
-
-watch(selectedSubtitle, (newSubtitle) => {
-  if (newSubtitle && videoElement.value) {
-    videoElement.value.currentTime = newSubtitle.start;
-  }
-});
 
 const transcribeAudio = (model: WhisperModelSize) => {
   console.log(`Transcribing audio with ${model}`);

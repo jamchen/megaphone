@@ -1,7 +1,7 @@
 {
   "name": "megaphone",
   "version": "0.0.1",
-  "description": "A toolkit that assists creating subtitles",
+  "description": "A toolkit that assists in creating subtitles",
   "productName": "Megaphone",
   "author": "MacSmith",
   "private": true,

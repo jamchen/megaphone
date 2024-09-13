@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-interface Subtitle {
+export interface Subtitle {
   text: string;
   start: number;
   end: number;

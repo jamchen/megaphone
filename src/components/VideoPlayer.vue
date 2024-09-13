@@ -1,6 +1,11 @@
 <template>
   <div>
-    <video ref="videoElement" :src="videoUrl" controls width="1280"></video>
+    <video
+      class="full-width"
+      ref="videoElement"
+      :src="videoUrl"
+      controls
+    ></video>
   </div>
 </template>
 

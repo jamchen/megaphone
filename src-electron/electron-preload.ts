@@ -2,6 +2,7 @@ import { contextBridge } from 'electron';
 import { spawn } from 'child_process';
 import path from 'path';
 import readline from 'readline';
+import { createObjectURL } from './utils';
 
 const isDev = process.env.NODE_ENV === 'development';
 const resourcesPath = isDev ? process.cwd() : process.resourcesPath;
@@ -34,14 +35,16 @@ console.log(`transcribeScriptPath: ${transcribeScriptPath}`);
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  createObjectURL,
   transcribeAudio: (
     audioFilePath: string,
+    model: WhisperModelSize,
     onProgress: (progress: string) => void
   ) => {
     return new Promise((resolve, reject) => {
       const script = spawn(
         pythonExecutable,
-        [transcribeScriptPath, audioFilePath],
+        [transcribeScriptPath, audioFilePath, model],
         {
           env: {
             ...process.env,

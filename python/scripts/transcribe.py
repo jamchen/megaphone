@@ -3,9 +3,9 @@ import whisper
 import sys
 import json
 
-def transcribe(audio_path):
+def transcribe(audio_path, model="base"):
     print("Progress: Loading model")
-    model = whisper.load_model("base")
+    model = whisper.load_model(model)
 
     print("Progress: Transcribing audio")
     result = model.transcribe(audio_path, language="zh", fp16=False, verbose=False)
@@ -15,4 +15,5 @@ def transcribe(audio_path):
 
 if __name__ == "__main__":
     audio_path = sys.argv[1]
+    model = sys.argv[2]
     transcribe(audio_path)

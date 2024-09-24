@@ -46,10 +46,22 @@ const updateSelectedSubtitle = () => {
   }
 };
 
+// Toggle playback on space bar press
+const togglePlaybackIfNeeded = (event: KeyboardEvent) => {
+  if (event.code === 'Space' && videoElement.value) {
+    if (videoElement.value.paused) {
+      videoElement.value.play();
+    } else {
+      videoElement.value.pause();
+    }
+  }
+};
+
 onMounted(() => {
   if (videoElement.value) {
     videoElement.value.addEventListener('timeupdate', updateSelectedSubtitle);
   }
+  window.addEventListener('keydown', togglePlaybackIfNeeded);
 });
 
 onUnmounted(() => {
@@ -59,6 +71,7 @@ onUnmounted(() => {
       updateSelectedSubtitle
     );
   }
+  window.removeEventListener('keydown', togglePlaybackIfNeeded);
 });
 </script>
 

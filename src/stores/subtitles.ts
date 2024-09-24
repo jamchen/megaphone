@@ -23,6 +23,7 @@ export const useSubtitlesStore = defineStore('subtitles', {
     },
     clearSubtitles() {
       this.subtitles = [];
+      this.selectedSubtitle = null;
     },
     selectSubtitle(subtitle: Subtitle) {
       this.selectedSubtitle = subtitle;

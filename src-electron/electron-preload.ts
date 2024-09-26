@@ -3,6 +3,8 @@ import { createObjectURL } from './utils';
 import { transcriptAudio } from './transcript-audio';
 import { extractAudio } from './extract-audio';
 import path from 'path';
+import { formatSubtitlesToSRT } from './srt';
+import fs from 'fs';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -12,10 +14,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPathForFile: (file: File): string => {
     return webUtils.getPathForFile(file);
   },
+  onExportSubtitles: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('export-subtitles', (_, filePath) => {
+      callback(filePath);
     });
   },
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => {
-    ipcRenderer.send('export-subtitles', { filePath, subtitles });
+    fs.writeFileSync(filePath, formatSubtitlesToSRT(subtitles), 'utf-8');
   },
   extractAudio: async (videoFilePath: string) => {
     const audioFilePath = videoFilePath.replace(/\.\w+$/, '.wav');

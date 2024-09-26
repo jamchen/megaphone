@@ -1,6 +1,7 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import path from 'path';
 import os from 'os';
+import { createMenu } from './menu';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -43,10 +44,7 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
-ipcMain.on('export-subtitles', (_, { filePath, subtitles }) => {
-  fs.writeFileSync(filePath, formatSubtitlesToSRT(subtitles), 'utf-8');
-});
-
+Menu.setApplicationMenu(createMenu());
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

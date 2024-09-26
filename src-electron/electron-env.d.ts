@@ -25,6 +25,40 @@ interface Subtitle {
   end: number;
 }
 
+// google translate types
+interface GoogleTranslateOptions {
+  from?: string;
+  to?: string;
+  host?: string;
+  fetchOptions?: Partial<RequestInit>;
+}
+
+interface GoogleTranslateResult {
+  text: string;
+  raw: RawResponse;
+}
+
+interface RawResponse {
+  sentences: (Sentence | SrcTranslit)[];
+  src: string;
+  confidence: number;
+  ld_result: {
+    srclangs: string[];
+    srclangs_confidences: number[];
+    extended_srclangs: string[];
+  };
+}
+
+interface Sentence {
+  trans: string;
+  orig: string;
+}
+
+interface SrcTranslit {
+  src_translit: string;
+}
+
+// Define the ElectronAPI interface
 interface ElectronAPI {
   createObjectURL: (filePath: string) => string;
   transcribeAudio: (
@@ -37,6 +71,10 @@ interface ElectronAPI {
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
   extractAudio: (videoFilePath: string) => Promise<string>;
   basename: (filePath: string) => string;
+  translate(
+    text: string,
+    options?: GoogleTranslateOptions
+  ): Promise<GoogleTranslateResult>;
 }
 
 interface Window {

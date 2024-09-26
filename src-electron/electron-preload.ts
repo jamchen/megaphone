@@ -5,6 +5,7 @@ import { extractAudio } from './extract-audio';
 import path from 'path';
 import { formatSubtitlesToSRT } from './srt';
 import fs from 'fs';
+import { translate } from '@vitalets/google-translate-api';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -30,4 +31,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   basename: (filePath: string) => {
     return path.basename(filePath);
   },
+  translate: translate,
 });

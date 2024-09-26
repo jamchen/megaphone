@@ -23,6 +23,7 @@ function createWindow() {
       preload: path.resolve(__dirname, process.env.QUASAR_ELECTRON_PRELOAD),
       sandbox: false,
     },
+    show: false,
   });
 
   mainWindow.loadURL(process.env.APP_URL);
@@ -36,6 +37,11 @@ function createWindow() {
       mainWindow?.webContents.closeDevTools();
     });
   }
+
+  mainWindow.once('ready-to-show', () => {
+    console.log('ready-to-show', Date.now());
+    mainWindow?.show();
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = undefined;

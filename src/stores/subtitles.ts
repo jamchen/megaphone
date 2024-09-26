@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 export const useSubtitlesStore = defineStore('subtitles', {
   state: () => ({
     subtitles: [] as Subtitle[],
+    translatedSubtitles: [] as Subtitle[],
     selectedSubtitle: null as Subtitle | null,
   }),
 
@@ -17,6 +18,7 @@ export const useSubtitlesStore = defineStore('subtitles', {
     },
     clearSubtitles() {
       this.subtitles = [];
+      this.translatedSubtitles = [];
       this.selectedSubtitle = null;
     },
     selectSubtitle(subtitle: Subtitle) {
@@ -28,6 +30,6 @@ export const useSubtitlesStore = defineStore('subtitles', {
   },
 
   persist: {
-    pick: ['subtitles'],
+    pick: ['subtitles', 'translatedSubtitles'],
   },
 });

@@ -1,10 +1,12 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { createObjectURL } from './utils';
-import { transcriptAudio } from './transcript-audio';
+import { transcriptAudio } from './python-wrappers/transcript-audio';
 import { extractAudio } from './extract-audio';
 import path from 'path';
 import { formatSubtitlesToSRT } from './srt';
 import fs from 'fs';
+import { translate as googleTranslate } from '@vitalets/google-translate-api';
+import { translate as pythonTranslate } from './python-wrappers/translate';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -30,4 +32,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   basename: (filePath: string) => {
     return path.basename(filePath);
   },
+  googleTranslate: googleTranslate,
+  pythonTranslate: pythonTranslate,
 });

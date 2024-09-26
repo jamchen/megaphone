@@ -55,6 +55,14 @@
         @change="onSrtFileChange"
       />
     </div>
+    <div class="row q-gutter-sm">
+      <q-btn
+        class="col-xs-12 col-sm-6 col-md-4"
+        @click="translateSubtitles"
+        label="Translate Subtitles"
+        color="secondary"
+      ></q-btn>
+    </div>
   </div>
 </template>
 
@@ -100,10 +108,7 @@ const extractAudio = async () => {
     const outputFilePath = await window.electronAPI.extractAudio(filePath);
     audioFilePath.value = outputFilePath;
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: typeof error === 'string' ? error : String(error),
-    });
+    notifyError(error);
   }
   $q.loading.hide();
 };
@@ -151,10 +156,7 @@ const transcribeAudio = async (model: WhisperModelSize) => {
     });
     progress.value = null;
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: typeof error === 'string' ? error : String(error),
-    });
+    notifyError(error);
     progress.value = null;
   }
   $q.loading.hide();
@@ -191,6 +193,42 @@ const loadSrtContent = (content: string) => {
       end: subtitle.endTime / 1000,
       text: subtitle.text,
     });
+  });
+};
+
+const translateSubtitles = async () => {
+  $q.loading.show();
+  const subtitles = subtitlesStore.subtitles;
+  subtitlesStore.translatedSubtitles = [];
+  for (const subtitle of subtitles) {
+    try {
+      // const translation = await window.electronAPI.googleTranslate(subtitle.text, {
+      //   to: 'en',
+      // });
+      // translatedSubtitle = translation.text;
+      const translatedSubtitle = await window.electronAPI.pythonTranslate(
+        subtitle.text,
+        'zh-TW',
+        'en'
+      );
+      subtitlesStore.translatedSubtitles.push({
+        start: subtitle.start,
+        end: subtitle.end,
+        text: translatedSubtitle,
+      });
+    } catch (error) {
+      notifyError(error);
+      break;
+    }
+  }
+  $q.loading.hide();
+};
+
+const notifyError = (error: unknown) => {
+  console.error(error);
+  $q.notify({
+    type: 'negative',
+    message: typeof error === 'string' ? error : String(error),
   });
 };
 </script>

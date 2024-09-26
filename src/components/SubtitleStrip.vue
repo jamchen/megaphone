@@ -29,9 +29,13 @@ import { useTemplateRef, watch, nextTick, ComponentPublicInstance } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 
+const props = defineProps<{
+  subtitles: Subtitle[];
+}>();
+
 const store = useSubtitlesStore();
 
-const { subtitles, selectedSubtitle } = storeToRefs(store);
+const { selectedSubtitle } = storeToRefs(store);
 const selectSubtitle = store.selectSubtitle;
 const subtitleCards =
   useTemplateRef<ComponentPublicInstance<HTMLElement>[]>('subtitleCards');
@@ -39,7 +43,7 @@ const subtitleCards =
 watch(selectedSubtitle, async (newSubtitle) => {
   if (newSubtitle) {
     await nextTick();
-    const index = subtitles.value.findIndex(
+    const index = props.subtitles.findIndex(
       (subtitle) => subtitle === newSubtitle
     );
     if (index !== -1) {

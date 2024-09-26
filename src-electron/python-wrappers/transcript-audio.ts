@@ -1,18 +1,7 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
-const isDev = process.env.NODE_ENV === 'development';
-const resourcesPath = isDev ? process.cwd() : process.resourcesPath;
-console.log(`resourcesPath: ${resourcesPath}`);
-
-const pythonExecutable = path.join(
-  resourcesPath,
-  'python',
-  'venv',
-  'bin',
-  'python3.12'
-); // Adjust the path as needed
-console.log(`pythonExecutable: ${pythonExecutable}`);
+import { pythonExecutable, resourcesPath } from './common';
 
 const extractPercentage = (input: string): number | null => {
   const percentageRegex = /(\d+)%/;
@@ -22,6 +11,7 @@ const extractPercentage = (input: string): number | null => {
   }
   return null;
 };
+
 const transcribeScriptPath = path.join(
   resourcesPath,
   'python',

@@ -19,4 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     await extractAudio(videoFilePath, audioFilePath);
     return audioFilePath;
   },
+  basename: (filePath: string) => {
+    return path.basename(filePath);
+  },
 });

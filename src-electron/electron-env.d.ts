@@ -34,6 +34,7 @@ interface ElectronAPI {
   ) => Promise<Array<Segment>>;
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
   extractAudio: (videoFilePath: string) => Promise<string>;
+  basename: (filePath: string) => string;
 }
 
 interface Window {

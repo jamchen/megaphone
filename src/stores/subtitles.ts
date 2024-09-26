@@ -1,11 +1,5 @@
 import { defineStore } from 'pinia';
 
-export interface Subtitle {
-  text: string;
-  start: number;
-  end: number;
-}
-
 export const useSubtitlesStore = defineStore('subtitles', {
   state: () => ({
     subtitles: [] as Subtitle[],
@@ -31,5 +25,9 @@ export const useSubtitlesStore = defineStore('subtitles', {
     deselectSubtitle() {
       this.selectedSubtitle = null;
     },
+  },
+
+  persist: {
+    pick: ['subtitles'],
   },
 });

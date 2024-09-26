@@ -15,7 +15,9 @@
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "pinia": "^2.2.2",
+    "pinia-plugin-persistedstate": "^4.0.2",
     "quasar": "^2.16.0",
+    "subtitles-parser-vtt": "^0.1.0",
     "vue": "^3.4.18",
     "vue-router": "^4.0.12"
   },

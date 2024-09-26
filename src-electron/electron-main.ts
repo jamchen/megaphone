@@ -43,6 +43,11 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
+ipcMain.on('export-subtitles', (_, { filePath, subtitles }) => {
+  fs.writeFileSync(filePath, formatSubtitlesToSRT(subtitles), 'utf-8');
+});
+
+
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {
     app.quit();

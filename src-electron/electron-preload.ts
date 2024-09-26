@@ -108,4 +108,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       });
     });
   },
+  exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => {
+    ipcRenderer.send('export-subtitles', { filePath, subtitles });
+  },
 });

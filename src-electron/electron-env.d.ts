@@ -18,6 +18,13 @@ interface Segment {
 
 // Define the WhisperModelSize type
 type WhisperModelSize = 'tiny' | 'base' | 'small' | 'medium' | 'large';
+
+interface Subtitle {
+  text: string;
+  start: number;
+  end: number;
+}
+
 interface ElectronAPI {
   createObjectURL: (filePath: string) => string;
   transcribeAudio: (
@@ -25,6 +32,7 @@ interface ElectronAPI {
     model: WhisperModelSize,
     onProgress: (progress: string) => void
   ) => Promise<Array<Segment>>;
+  exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
 }
 
 interface Window {

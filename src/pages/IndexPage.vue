@@ -8,7 +8,11 @@
         <ControlPanel />
       </div>
     </div>
-    <SubtitleStrip />
+    <SubtitleStrip :subtitles="subtitles" />
+    <SubtitleStrip
+      v-if="translatedSubtitles && translatedSubtitles.length > 0"
+      :subtitles="translatedSubtitles"
+    />
     <div class="row" v-if="selectedSubtitle">
       <SubtitleEditor class="col" v-model="selectedSubtitle" />
     </div>
@@ -48,5 +52,6 @@ const videoUrl = computed(() => {
 });
 
 const subtitlesStore = useSubtitlesStore();
-const { selectedSubtitle } = storeToRefs(subtitlesStore);
+const { subtitles, selectedSubtitle, translatedSubtitles } =
+  storeToRefs(subtitlesStore);
 </script>

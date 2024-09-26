@@ -71,10 +71,15 @@ interface ElectronAPI {
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
   extractAudio: (videoFilePath: string) => Promise<string>;
   basename: (filePath: string) => string;
-  translate(
+  googleTranslate(
     text: string,
     options?: GoogleTranslateOptions
   ): Promise<GoogleTranslateResult>;
+  pythonTranslate(
+    text: string,
+    sourceLang: string,
+    targetLang: string
+  ): Promise<string>;
 }
 
 interface Window {

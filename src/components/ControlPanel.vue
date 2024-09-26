@@ -196,21 +196,36 @@ const loadSrtContent = (content: string) => {
   });
 };
 
-const translateSubtitles = () => {
+const translateSubtitles = async () => {
+  $q.loading.show();
   const subtitles = subtitlesStore.subtitles;
-  subtitles.forEach(async (subtitle) => {
+  subtitlesStore.translatedSubtitles = [];
+  for (const subtitle of subtitles) {
     try {
-      const translation = await window.electronAPI.translate(subtitle.text, {
-        to: 'en',
+      // const translation = await window.electronAPI.googleTranslate(subtitle.text, {
+      //   to: 'en',
+      // });
+      // translatedSubtitle = translation.text;
+      const translatedSubtitle = await window.electronAPI.pythonTranslate(
+        subtitle.text,
+        'zh-TW',
+        'en'
+      );
+      subtitlesStore.translatedSubtitles.push({
+        start: subtitle.start,
+        end: subtitle.end,
+        text: translatedSubtitle,
       });
-      subtitle.text = translation.text;
     } catch (error) {
       notifyError(error);
+      break;
     }
-  });
+  }
+  $q.loading.hide();
 };
 
 const notifyError = (error: unknown) => {
+  console.error(error);
   $q.notify({
     type: 'negative',
     message: typeof error === 'string' ? error : String(error),

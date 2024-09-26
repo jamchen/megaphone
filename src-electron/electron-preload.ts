@@ -9,6 +9,9 @@ console.log(`process.env.PATH: ${process.env.PATH}`);
 contextBridge.exposeInMainWorld('electronAPI', {
   createObjectURL,
   transcribeAudio: transcriptAudio,
+  getPathForFile: (file: File): string => {
+    return webUtils.getPathForFile(file);
+  },
     });
   },
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => {

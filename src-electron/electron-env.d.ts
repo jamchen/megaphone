@@ -32,6 +32,7 @@ interface ElectronAPI {
     model: WhisperModelSize,
     onProgress: (progress: string) => void
   ) => Promise<Array<Segment>>;
+  getPathForFile: (file: File) => string;
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
   extractAudio: (videoFilePath: string) => Promise<string>;
   basename: (filePath: string) => string;

@@ -4,15 +4,14 @@
       v-model="model.text"
       label="Edit Subtitle"
       outlined
-      dense
       type="textarea"
+      @keydown.space.stop
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { defineModel } from 'vue';
-import { Subtitle } from 'stores/subtitles';
 
 const model = defineModel<Subtitle>({ default: {} });
 </script>

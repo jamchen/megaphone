@@ -25,31 +25,34 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, watch, nextTick, ComponentPublicInstance } from 'vue';
+import { useTemplateRef, watch, ComponentPublicInstance } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
+import { useProjectStore } from 'src/stores/project';
 
 const props = defineProps<{
   subtitles: Subtitle[];
 }>();
 
-const store = useSubtitlesStore();
+const subtitlesStore = useSubtitlesStore();
+const { selectedSubtitle } = storeToRefs(subtitlesStore);
+const selectSubtitle = subtitlesStore.selectSubtitle;
 
-const { selectedSubtitle } = storeToRefs(store);
-const selectSubtitle = store.selectSubtitle;
+const projectStore = useProjectStore();
+const { videoCurrentTime } = storeToRefs(projectStore);
+
 const subtitleCards =
   useTemplateRef<ComponentPublicInstance<HTMLElement>[]>('subtitleCards');
 
-watch(selectedSubtitle, async (newSubtitle) => {
-  if (newSubtitle) {
-    await nextTick();
+watch(videoCurrentTime, async (currentTime) => {
+  if (currentTime) {
     const index = props.subtitles.findIndex(
-      (subtitle) => subtitle === newSubtitle
+      (subtitle) => currentTime >= subtitle.start && currentTime < subtitle.end
     );
     if (index !== -1) {
-      const selectedCard = subtitleCards.value?.[index];
-      selectedCard?.$el.scrollIntoView({
-        behavior: 'smooth',
+      const cardForCurrentTime = subtitleCards.value?.[index];
+      cardForCurrentTime?.$el.scrollIntoView({
+        behavior: 'auto',
         block: 'center',
       });
     }

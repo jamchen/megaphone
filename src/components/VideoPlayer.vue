@@ -13,22 +13,34 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
+import { useProjectStore } from 'stores/project';
 
 defineProps({
   videoUrl: String,
 });
 
-const store = useSubtitlesStore();
-const { selectedSubtitle, subtitles } = storeToRefs(store);
+const subtitlesStore = useSubtitlesStore();
+const { selectedSubtitle, subtitles, translatedSubtitles } =
+  storeToRefs(subtitlesStore);
+const projectStore = useProjectStore();
+const { videoCurrentTime } = storeToRefs(projectStore);
 const videoElement = ref<HTMLVideoElement | null>(null);
 
 watch(selectedSubtitle, (newSubtitle) => {
   if (newSubtitle && videoElement.value) {
     const currentTime = videoElement.value.currentTime;
-    const currentSubtitle = subtitles.value.find(
+    const subtitleForCurrentTime = subtitles.value.find(
       (subtitle) => currentTime >= subtitle.start && currentTime < subtitle.end
     );
-    if (currentSubtitle != newSubtitle) {
+    const translatedSubtitleForCurrentTime =
+      subtitlesStore.translatedSubtitles.find(
+        (subtitle) =>
+          currentTime >= subtitle.start && currentTime < subtitle.end
+      );
+    if (
+      subtitleForCurrentTime != newSubtitle &&
+      translatedSubtitleForCurrentTime != newSubtitle
+    ) {
       videoElement.value.currentTime = newSubtitle.start;
     }
   }
@@ -37,11 +49,35 @@ watch(selectedSubtitle, (newSubtitle) => {
 const updateSelectedSubtitle = () => {
   if (videoElement.value) {
     const currentTime = videoElement.value.currentTime;
-    const currentSubtitle = subtitles.value.find(
+    videoCurrentTime.value = currentTime;
+    const subtitleForCurrentTime = subtitles.value.find(
       (subtitle) => currentTime >= subtitle.start && currentTime < subtitle.end
     );
-    if (currentSubtitle && store.selectedSubtitle != currentSubtitle) {
-      store.selectedSubtitle = currentSubtitle;
+    const translatedSubtitleForCurrentTime =
+      subtitlesStore.translatedSubtitles.find(
+        (subtitle) =>
+          currentTime >= subtitle.start && currentTime < subtitle.end
+      );
+    if (
+      subtitlesStore.selectedSubtitle == subtitleForCurrentTime ||
+      subtitlesStore.selectedSubtitle == translatedSubtitleForCurrentTime
+    ) {
+      // Do nothing if the selected subtitle is already the correct one
+      return;
+    } else if (
+      subtitles.value.find(
+        (subtitle) => subtitle == subtitlesStore.selectedSubtitle
+      ) &&
+      subtitleForCurrentTime
+    ) {
+      subtitlesStore.selectedSubtitle = subtitleForCurrentTime;
+    } else if (
+      translatedSubtitles.value.find(
+        (subtitle) => subtitle == subtitlesStore.selectedSubtitle
+      ) &&
+      translatedSubtitleForCurrentTime
+    ) {
+      subtitlesStore.selectedSubtitle = translatedSubtitleForCurrentTime;
     }
   }
 };

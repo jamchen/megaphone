@@ -1,12 +1,12 @@
 <template>
   <div class="row">
-    <q-scroll-area class="full-width bg-dark q-pt-sm" style="height: 142px">
+    <q-scroll-area class="full-width bg-dark q-pt-sm" style="height: 202px">
       <div class="row no-wrap">
         <q-card
           v-for="(subtitle, index) in subtitles"
           :key="index"
           class="q-pa-sx q-ml-sm q-mt-sx"
-          style="width: 200px; height: 127px"
+          style="width: 200px; height: 187px"
           :class="{ 'selected-border': subtitle === selectedSubtitle }"
           :bordered="subtitle === selectedSubtitle"
           @click="selectSubtitle(subtitle)"
@@ -52,19 +52,17 @@ watch(selectedSubtitle, async (newSubtitle) => {
   }
 });
 
-const formatTime = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
-  } else {
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+function formatTime(seconds: number): string {
+  const date = new Date(seconds * 1000);
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const secs = String(date.getUTCSeconds()).padStart(2, '0');
+  const millis = String(date.getUTCMilliseconds()).padStart(3, '0');
+  if (hours === '00') {
+    return `${minutes}:${secs},${millis}`;
   }
-};
+  return `${hours}:${minutes}:${secs},${millis}`;
+}
 </script>
 
 <style lang="scss" scoped>

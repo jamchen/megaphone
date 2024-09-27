@@ -18,3 +18,14 @@ export default boot(async (/* { app, router, ... } */) => {
     electronAPI.exportSubtitles(filePath, toRaw(subtitlesStore.subtitles));
   });
 });
+
+function getTimestamp(): string {
+  const now = new Date();
+  return now.toISOString(); // You can customize the format if needed
+}
+
+// Override console.log to include a timestamp
+const originalConsoleLog = console.log;
+console.log = (...args) => {
+  originalConsoleLog(`[${getTimestamp()}]`, ...args);
+};

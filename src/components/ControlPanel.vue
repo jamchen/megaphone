@@ -14,6 +14,11 @@
         color="primary"
         @click="doDownloadYouTubeVideo"
       />
+      <q-toggle
+        v-model="autoMode"
+        label="Automatically transcribe the video after it is downloaded"
+        color="primary"
+      />
     </div>
     <div class="row q-gutter-sm"></div>
     <div class="row q-gutter-sm">
@@ -93,7 +98,7 @@ const {
   transcribeAudio,
 } = window.electronAPI;
 
-// const autoMode = ref(true);
+const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
 
 const selectVideoFile = () => {
@@ -120,7 +125,9 @@ const doExtractAudio = async () => {
   $q.loading.show();
   try {
     audioFilePath.value = undefined;
+    console.log('Extracting audio from:', filePath);
     const outputFilePath = await extractAudio(filePath);
+    console.log('Extracted audio to:', outputFilePath);
     audioFilePath.value = outputFilePath;
   } catch (error) {
     notifyError(error);
@@ -169,6 +176,7 @@ const doTranscribeAudio = async (model: WhisperModelSize) => {
       type: 'positive',
       message: 'Transcription complete',
     });
+    console.log('Transcription complete');
     progress.value = null;
   } catch (error) {
     notifyError(error);
@@ -247,6 +255,18 @@ const notifyError = (error: unknown) => {
   });
 };
 
+function formatDuration(ms: number): string {
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+
+  const hoursStr = hours > 0 ? `${hours}h ` : '';
+  const minutesStr = minutes > 0 ? `${minutes}m ` : '';
+  const secondsStr = seconds > 0 ? `${seconds}s` : '';
+
+  return `${hoursStr}${minutesStr}${secondsStr}`.trim() || '0s';
+}
+
 const doDownloadYouTubeVideo = async () => {
   $q.dialog({
     title: 'Enter YouTube Video URL',
@@ -263,12 +283,86 @@ const doDownloadYouTubeVideo = async () => {
         return;
       }
       $q.loading.show();
+
+      // Mark the start time
+      performance.mark('start-download');
+
       console.log('Downloading YouTube video:', videoUrl);
       const ytVideoFilePath = await downloadYouTubeVideo(videoUrl);
       console.log('Downloaded YouTube video:', ytVideoFilePath);
       videoFilePath.value = ytVideoFilePath;
       audioFilePath.value = undefined;
       clearSubtitles();
+
+      // Mark the end time for download
+      performance.mark('end-download');
+
+      if (autoMode.value) {
+        // Mark the start time for audio extraction
+        performance.mark('start-extract-audio');
+
+        await doExtractAudio();
+
+        // Mark the end time for audio extraction
+        performance.mark('end-extract-audio');
+
+        // Mark the start time for audio transcription
+        performance.mark('start-transcribe-audio');
+
+        await doTranscribeAudio(selectedModelSize.value);
+
+        // Mark the end time for audio transcription
+        performance.mark('end-transcribe-audio');
+      }
+
+      // Measure the duration for download
+      performance.measure(
+        'download-duration',
+        'start-download',
+        'end-download'
+      );
+      const downloadDuration =
+        performance.getEntriesByName('download-duration')[0].duration;
+      console.log(`Download duration: ${formatDuration(downloadDuration)}`);
+
+      if (autoMode.value) {
+        // Measure the duration for audio extraction
+        performance.measure(
+          'extract-audio-duration',
+          'start-extract-audio',
+          'end-extract-audio'
+        );
+        const extractAudioDuration = performance.getEntriesByName(
+          'extract-audio-duration'
+        )[0].duration;
+        console.log(
+          `Audio extraction duration: ${formatDuration(extractAudioDuration)}`
+        );
+
+        // Measure the duration for audio transcription
+        performance.measure(
+          'transcribe-audio-duration',
+          'start-transcribe-audio',
+          'end-transcribe-audio'
+        );
+        const transcribeAudioDuration = performance.getEntriesByName(
+          'transcribe-audio-duration'
+        )[0].duration;
+        console.log(
+          `Audio transcription duration: ${formatDuration(
+            transcribeAudioDuration
+          )}`
+        );
+
+        // Calculate and log the total duration
+        const totalDuration =
+          downloadDuration + extractAudioDuration + transcribeAudioDuration;
+        console.log(`Total duration: ${formatDuration(totalDuration)}`);
+      }
+
+      // Clear the performance entries
+      performance.clearMarks();
+      performance.clearMeasures();
     } catch (error) {
       notifyError(error);
     }

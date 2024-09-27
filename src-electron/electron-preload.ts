@@ -7,6 +7,7 @@ import { formatSubtitlesToSRT } from './srt';
 import fs from 'fs';
 import { translate as googleTranslate } from '@vitalets/google-translate-api';
 import { translate as pythonTranslate } from './python-wrappers/translate';
+import { downloadYouTubeVideo } from './yt-dlp';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -36,5 +37,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pythonTranslate: pythonTranslate,
   showSaveDialog: async (options: Electron.SaveDialogOptions) => {
     return await ipcRenderer.invoke('show-save-dialog', options);
+  },
+  downloadYouTubeVideo: async (url: string) => {
+    return await downloadYouTubeVideo(url);
   },
 });

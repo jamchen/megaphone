@@ -9,20 +9,26 @@
         style="display: none"
         @change="changeVideoFile"
       />
+      <q-btn
+        label="Download YT Video"
+        color="primary"
+        @click="doDownloadYouTubeVideo"
+      />
     </div>
+    <div class="row q-gutter-sm"></div>
     <div class="row q-gutter-sm">
       <q-btn
         class="col-xs-12 col-sm-6 col-md-4"
         label="Extract Audio"
         color="primary"
-        @click="extractAudio"
+        @click="doExtractAudio"
         :disable="videoFilePath == undefined"
       />
     </div>
     <div class="row q-gutter-sm">
       <q-btn
         class="col-xs-12 col-sm-6 col-md-4"
-        @click="transcribeAudio(selectedModelSize)"
+        @click="doTranscribeAudio(selectedModelSize)"
         label="Transcribe Audio"
         color="primary"
         :disable="audioFilePath == undefined"
@@ -79,6 +85,15 @@ const { videoFilePath, audioFilePath } = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
+const {
+  downloadYouTubeVideo,
+  getPathForFile,
+  pythonTranslate,
+  extractAudio,
+  transcribeAudio,
+} = window.electronAPI;
+
+// const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
 
 const selectVideoFile = () => {
@@ -89,7 +104,7 @@ const changeVideoFile = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files[0]) {
     const videoFile = input.files[0];
-    videoFilePath.value = window.electronAPI.getPathForFile(videoFile);
+    videoFilePath.value = getPathForFile(videoFile);
     audioFilePath.value = undefined;
     clearSubtitles();
   }
@@ -97,7 +112,7 @@ const changeVideoFile = (event: Event) => {
 
 const $q = useQuasar();
 
-const extractAudio = async () => {
+const doExtractAudio = async () => {
   const filePath = videoFilePath.value;
   if (!filePath) {
     return;
@@ -105,7 +120,7 @@ const extractAudio = async () => {
   $q.loading.show();
   try {
     audioFilePath.value = undefined;
-    const outputFilePath = await window.electronAPI.extractAudio(filePath);
+    const outputFilePath = await extractAudio(filePath);
     audioFilePath.value = outputFilePath;
   } catch (error) {
     notifyError(error);
@@ -124,7 +139,7 @@ const modelSizes = [
 ];
 const selectedModelSize = ref<WhisperModelSize>('small');
 
-const transcribeAudio = async (model: WhisperModelSize) => {
+const doTranscribeAudio = async (model: WhisperModelSize) => {
   if (!audioFilePath.value) {
     $q.notify({
       type: 'negative',
@@ -136,7 +151,7 @@ const transcribeAudio = async (model: WhisperModelSize) => {
   console.log(`Transcribing audio with ${model}`);
   subtitlesStore.clearSubtitles();
   try {
-    const resultSegments = await window.electronAPI.transcribeAudio(
+    const resultSegments = await transcribeAudio(
       audioFilePath.value,
       model,
       (progressMessage) => {
@@ -202,11 +217,11 @@ const translateSubtitles = async () => {
   subtitlesStore.translatedSubtitles = [];
   for (const subtitle of subtitles) {
     try {
-      // const translation = await window.electronAPI.googleTranslate(subtitle.text, {
+      // const translation = await googleTranslate(subtitle.text, {
       //   to: 'en',
       // });
       // translatedSubtitle = translation.text;
-      const translatedSubtitle = await window.electronAPI.pythonTranslate(
+      const translatedSubtitle = await pythonTranslate(
         subtitle.text,
         'zh-TW',
         'en'
@@ -229,6 +244,35 @@ const notifyError = (error: unknown) => {
   $q.notify({
     type: 'negative',
     message: typeof error === 'string' ? error : String(error),
+  });
+};
+
+const doDownloadYouTubeVideo = async () => {
+  $q.dialog({
+    title: 'Enter YouTube Video URL',
+    message: 'Enter the URL of the YouTube video to download',
+    prompt: {
+      model: 'https://www.youtube.com/watch?v=s_L00-EBzHA',
+      type: 'text',
+    },
+    cancel: true,
+    persistent: true,
+  }).onOk(async (videoUrl) => {
+    try {
+      if (!videoUrl) {
+        return;
+      }
+      $q.loading.show();
+      console.log('Downloading YouTube video:', videoUrl);
+      const ytVideoFilePath = await downloadYouTubeVideo(videoUrl);
+      console.log('Downloaded YouTube video:', ytVideoFilePath);
+      videoFilePath.value = ytVideoFilePath;
+      audioFilePath.value = undefined;
+      clearSubtitles();
+    } catch (error) {
+      notifyError(error);
+    }
+    $q.loading.hide();
   });
 };
 </script>

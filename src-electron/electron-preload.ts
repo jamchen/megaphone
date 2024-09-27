@@ -34,4 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   googleTranslate: googleTranslate,
   pythonTranslate: pythonTranslate,
+  showSaveDialog: async (options: Electron.SaveDialogOptions) => {
+    return await ipcRenderer.invoke('show-save-dialog', options);
+  },
 });

@@ -80,6 +80,9 @@ interface ElectronAPI {
     sourceLang: string,
     targetLang: string
   ): Promise<string>;
+  showSaveDialog: (
+    options: Electron.SaveDialogOptions
+  ) => Promise<Electron.SaveDialogReturnValue>;
 }
 
 interface Window {

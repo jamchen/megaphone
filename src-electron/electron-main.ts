@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
 import path from 'path';
 import os from 'os';
 import { createMenu } from './menu';
@@ -49,6 +49,14 @@ function createWindow() {
 }
 
 app.whenReady().then(createWindow);
+
+ipcMain.handle('show-save-dialog', async (event, options) => {
+  if (!mainWindow) {
+    return;
+  }
+  const result = await dialog.showSaveDialog(mainWindow, options);
+  return result;
+});
 
 Menu.setApplicationMenu(createMenu());
 

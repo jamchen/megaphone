@@ -1,26 +1,33 @@
 <template>
   <div class="row">
-    <q-scroll-area class="full-width bg-dark q-pt-sm" style="height: 202px">
-      <div class="row no-wrap">
-        <q-card
-          v-for="(subtitle, index) in subtitles"
-          :key="index"
-          class="q-pa-sx q-ml-sm q-mt-sx"
-          style="width: 200px; height: 187px"
-          :class="{ 'selected-border': subtitle === selectedSubtitle }"
-          :bordered="subtitle === selectedSubtitle"
-          @click="selectSubtitle(subtitle)"
-          ref="subtitleCards"
-        >
-          <q-card-section>
-            {{ subtitle.text }}
-          </q-card-section>
-          <q-card-actions class="q-pl-md absolute-bottom">
-            {{ formatTime(subtitle.start) }} - {{ formatTime(subtitle.end) }}
-          </q-card-actions>
-        </q-card>
-      </div>
-    </q-scroll-area>
+    <div class="col-xs-auto q-pa-sm">
+      <q-btn icon="save" @click="exportSubtitlesAsSrt" size="sm">
+        <q-tooltip>Export Subtitles</q-tooltip>
+      </q-btn>
+    </div>
+    <div class="col">
+      <q-scroll-area class="full-width bg-dark q-pt-sm" style="height: 202px">
+        <div class="row no-wrap">
+          <q-card
+            v-for="(subtitle, index) in subtitles"
+            :key="index"
+            class="q-pa-sx q-ml-sm q-mt-sx"
+            style="width: 200px; height: 187px"
+            :class="{ 'selected-border': subtitle === selectedSubtitle }"
+            :bordered="subtitle === selectedSubtitle"
+            @click="selectSubtitle(subtitle)"
+            ref="subtitleCards"
+          >
+            <q-card-section>
+              {{ subtitle.text }}
+            </q-card-section>
+            <q-card-actions class="q-pl-md absolute-bottom">
+              {{ formatTime(subtitle.start) }} - {{ formatTime(subtitle.end) }}
+            </q-card-actions>
+          </q-card>
+        </div>
+      </q-scroll-area>
+    </div>
   </div>
 </template>
 
@@ -39,7 +46,9 @@ const { selectedSubtitle } = storeToRefs(subtitlesStore);
 const selectSubtitle = subtitlesStore.selectSubtitle;
 
 const projectStore = useProjectStore();
-const { videoCurrentTime } = storeToRefs(projectStore);
+const { videoCurrentTime, videoFilePath } = storeToRefs(projectStore);
+
+const { showSaveDialog, exportSubtitles, basename } = window.electronAPI;
 
 const subtitleCards =
   useTemplateRef<ComponentPublicInstance<HTMLElement>[]>('subtitleCards');
@@ -70,6 +79,22 @@ function formatTime(seconds: number): string {
   }
   return `${hours}:${minutes}:${secs},${millis}`;
 }
+
+const exportSubtitlesAsSrt = async () => {
+  const defaultPath = videoFilePath.value
+    ? `${basename(videoFilePath.value)}.srt`
+    : 'subtitles.srt';
+  const result = await showSaveDialog({
+    title: 'Export Subtitles',
+    defaultPath: defaultPath,
+    filters: [{ name: 'SubRip', extensions: ['srt'] }],
+  });
+  if (result.canceled) {
+    return;
+  }
+  const filePath = result.filePath;
+  exportSubtitles(filePath, props.subtitles);
+};
 </script>
 
 <style lang="scss" scoped>

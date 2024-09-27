@@ -24,6 +24,17 @@
             <q-card-actions class="q-pl-md absolute-bottom">
               {{ formatTime(subtitle.start) }} - {{ formatTime(subtitle.end) }}
             </q-card-actions>
+            <q-menu context-menu>
+              <q-list>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="removeSubtitlesToLeft(index)"
+                >
+                  <q-item-section>Remove Subtitles to the Left</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
           </q-card>
         </div>
       </q-scroll-area>
@@ -32,7 +43,13 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, watch, ComponentPublicInstance, toRaw } from 'vue';
+import {
+  useTemplateRef,
+  watch,
+  ComponentPublicInstance,
+  toRaw,
+  nextTick,
+} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 import { useProjectStore } from 'src/stores/project';
@@ -59,14 +76,18 @@ watch(videoCurrentTime, async (currentTime) => {
       (subtitle) => currentTime >= subtitle.start && currentTime < subtitle.end
     );
     if (index !== -1) {
-      const cardForCurrentTime = subtitleCards.value?.[index];
-      cardForCurrentTime?.$el.scrollIntoView({
-        behavior: 'auto',
-        block: 'center',
-      });
+      revealCardAtIndex(index);
     }
   }
 });
+
+function revealCardAtIndex(index: number) {
+  const cardForCurrentTime = subtitleCards.value?.[index];
+  cardForCurrentTime?.$el.scrollIntoView({
+    behavior: 'auto',
+    block: 'center',
+  });
+}
 
 function formatTime(seconds: number): string {
   const date = new Date(seconds * 1000);
@@ -110,6 +131,14 @@ const exportSubtitlesAsSrt = async () => {
   }
   const filePath = result.filePath;
   exportSubtitles(filePath, toRaw(props.subtitles));
+};
+
+const removeSubtitlesToLeft = (index: number) => {
+  // TODO: should propgate the change to the store via vue event
+  subtitlesStore.subtitles = props.subtitles.slice(index);
+  nextTick(() => {
+    revealCardAtIndex(0);
+  });
 };
 </script>
 

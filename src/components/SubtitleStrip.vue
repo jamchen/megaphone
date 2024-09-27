@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, watch, ComponentPublicInstance } from 'vue';
+import { useTemplateRef, watch, ComponentPublicInstance, toRaw } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 import { useProjectStore } from 'src/stores/project';
@@ -80,9 +80,25 @@ function formatTime(seconds: number): string {
   return `${hours}:${minutes}:${secs},${millis}`;
 }
 
+/**
+ * Gets the file extension from a full file path.
+ * @param filePath - The full file path.
+ * @returns The file extension, including the dot.
+ */
+function getFileExtension(filePath: string): string {
+  const lastDotIndex = filePath.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    return ''; // No extension found
+  }
+  return filePath.substring(lastDotIndex);
+}
+
 const exportSubtitlesAsSrt = async () => {
   const defaultPath = videoFilePath.value
-    ? `${basename(videoFilePath.value)}.srt`
+    ? `${basename(
+        videoFilePath.value,
+        getFileExtension(videoFilePath.value)
+      )}.srt`
     : 'subtitles.srt';
   const result = await showSaveDialog({
     title: 'Export Subtitles',
@@ -93,7 +109,7 @@ const exportSubtitlesAsSrt = async () => {
     return;
   }
   const filePath = result.filePath;
-  exportSubtitles(filePath, props.subtitles);
+  exportSubtitles(filePath, toRaw(props.subtitles));
 };
 </script>
 

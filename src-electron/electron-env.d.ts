@@ -70,7 +70,7 @@ interface ElectronAPI {
   onExportSubtitles: (callback: (filePath: string) => void) => void;
   exportSubtitles: (filePath: string, subtitles: Array<Subtitle>) => void;
   extractAudio: (videoFilePath: string) => Promise<string>;
-  basename: (filePath: string) => string;
+  basename: (filePath: string, ext?: string) => string;
   googleTranslate(
     text: string,
     options?: GoogleTranslateOptions

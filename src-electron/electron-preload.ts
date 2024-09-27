@@ -30,8 +30,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     await extractAudio(videoFilePath, audioFilePath);
     return audioFilePath;
   },
-  basename: (filePath: string) => {
-    return path.basename(filePath);
+  basename: (filePath: string, ext?: string) => {
+    return path.basename(filePath, ext);
   },
   googleTranslate: googleTranslate,
   pythonTranslate: pythonTranslate,

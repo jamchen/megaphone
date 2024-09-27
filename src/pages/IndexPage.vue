@@ -1,8 +1,8 @@
 <template>
   <q-page>
-    <div class="row" v-if="videoUrl">
+    <div class="row">
       <div class="col-5">
-        <VideoPlayer class="full-width" :videoUrl="videoUrl" />
+        <VideoPlayer v-if="videoUrl" class="full-width" :videoUrl="videoUrl" />
       </div>
       <div class="col">
         <ControlPanel />

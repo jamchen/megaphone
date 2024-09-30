@@ -33,6 +33,20 @@
                 >
                   <q-item-section>Remove Subtitles to the Left</q-item-section>
                 </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="removeSubtitleAt(index)"
+                >
+                  <q-item-section>Remove this Subtitle</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="removeSubtitlesToRight(index)"
+                >
+                  <q-item-section>Remove Subtitles to the Right</q-item-section>
+                </q-item>
               </q-list>
             </q-menu>
           </q-card>
@@ -139,6 +153,16 @@ const removeSubtitlesToLeft = (index: number) => {
   nextTick(() => {
     revealCardAtIndex(0);
   });
+};
+
+const removeSubtitlesToRight = (index: number) => {
+  // TODO: should propgate the change to the store via vue event
+  subtitlesStore.subtitles = props.subtitles.slice(0, index + 1);
+};
+
+const removeSubtitleAt = (index: number) => {
+  // TODO: should propgate the change to the store via vue event
+  subtitlesStore.subtitles = props.subtitles.filter((_, i) => i !== index);
 };
 </script>
 

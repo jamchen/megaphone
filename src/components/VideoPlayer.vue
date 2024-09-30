@@ -74,6 +74,19 @@ onBeforeUnmount(() => {
   player.value?.dispose();
 });
 
+watch(
+  () => props.videoUrl,
+  (newUrl) => {
+    console.log('New video URL:', newUrl);
+    if (player.value) {
+      player.value.src({
+        src: newUrl,
+        type: 'video/mp4',
+      });
+    }
+  }
+);
+
 const updateSelectedSubtitle = () => {
   if (videoElement.value) {
     const currentTime = videoElement.value.currentTime;

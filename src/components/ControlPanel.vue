@@ -272,7 +272,7 @@ const doDownloadYouTubeVideo = async () => {
     title: 'Enter YouTube Video URL',
     message: 'Enter the URL of the YouTube video to download',
     prompt: {
-      model: 'https://www.youtube.com/watch?v=s_L00-EBzHA',
+      model: '',
       type: 'text',
     },
     cancel: true,

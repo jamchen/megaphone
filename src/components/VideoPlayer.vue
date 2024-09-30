@@ -1,21 +1,23 @@
 <template>
   <div>
     <video
-      class="full-width"
+      id="video-player"
+      class="full-width video-js"
       ref="videoElement"
-      :src="videoUrl"
-      controls
     ></video>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 import { useProjectStore } from 'stores/project';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import Player from 'video.js/dist/types/player';
 
-defineProps({
+const props = defineProps({
   videoUrl: String,
 });
 
@@ -44,6 +46,32 @@ watch(selectedSubtitle, (newSubtitle) => {
       videoElement.value.currentTime = newSubtitle.start;
     }
   }
+});
+
+const player = ref<Player | null>(null);
+onMounted(() => {
+  if (videoElement.value) {
+    player.value = videojs(
+      videoElement.value,
+      {
+        controls: true,
+        playbackRates: [0.5, 1, 1.5, 1.75, 2],
+        sources: [
+          {
+            src: props.videoUrl,
+            type: 'video/mp4',
+          },
+        ],
+      },
+      () => {
+        console.log('Video.js player initialized');
+      }
+    );
+  }
+});
+
+onBeforeUnmount(() => {
+  player.value?.dispose();
 });
 
 const updateSelectedSubtitle = () => {
@@ -111,4 +139,8 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+#video-player {
+  max-height: 450px;
+}
+</style>

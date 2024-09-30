@@ -130,7 +130,7 @@ const exportSubtitlesAsSrt = async () => {
     return;
   }
   const filePath = result.filePath;
-  exportSubtitles(filePath, toRaw(props.subtitles));
+  exportSubtitles(filePath, props.subtitles.map(toRaw));
 };
 
 const removeSubtitlesToLeft = (index: number) => {

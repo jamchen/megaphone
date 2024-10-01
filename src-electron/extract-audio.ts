@@ -1,35 +1,5 @@
 import { exec } from 'child_process';
-import os from 'os';
-import path from 'path';
-
-const getStandaloneFFmpegPath = () => {
-  const platform = os.platform();
-  if (platform === 'darwin') {
-    return 'darwin';
-  } else if (platform === 'win32') {
-    return 'win32';
-  } else {
-    throw new Error(`Unsupported platform: ${platform}`);
-  }
-};
-const isDev = process.env.NODE_ENV === 'development';
-
-const getFFmpegExecutablePath = () => {
-  if (isDev) {
-    return path.join(
-      process.cwd(),
-      'ffmpeg',
-      getStandaloneFFmpegPath(),
-      'ffmpeg'
-    );
-  } else {
-    return path.join(
-      process.resourcesPath,
-      getStandaloneFFmpegPath(),
-      'ffmpeg'
-    );
-  }
-};
+import { getFFmpegExecutablePath } from './path-utils';
 
 export function extractAudio(
   inputFile: string,

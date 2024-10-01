@@ -1,5 +1,7 @@
 import { spawn } from 'child_process';
-import * as path from 'path';
+import path from 'path';
+import { getFFmpegExecutablePath, getYtDlpExecutablePath } from './path-utils';
+import { app } from 'electron';
 
 /**
  * Downloads a YouTube video using yt-dlp with specified options.
@@ -7,10 +9,21 @@ import * as path from 'path';
  * @returns A promise that resolves when the download is complete.
  */
 export function downloadYouTubeVideo(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const command = 'yt-dlp';
+  return new Promise(async (resolve, reject) => {
+    const command = getYtDlpExecutablePath();
     // const args = ['-j', '-S', '+codec:avc:m4a', url];
-    const args = ['-j', '--no-simulate', '-S', '+codec:avc:m4a', url];
+    const downloadPath = await app.getPath('downloads');
+    const args = [
+      '-j',
+      '--no-simulate',
+      '--ffmpeg-location',
+      getFFmpegExecutablePath(),
+      '-S',
+      '+codec:avc:m4a',
+      '-o',
+      path.join(downloadPath, '%(title)s-%(id)s.%(ext)s'),
+      url,
+    ];
 
     console.log('yt-dlp command:', `${command} ${args.join(' ')}`);
     const process = spawn(command, args);
@@ -26,10 +39,8 @@ export function downloadYouTubeVideo(url: string): Promise<string> {
     process.on('close', (code) => {
       if (code === 0) {
         const outputJson = JSON.parse(stdout.join(''));
-
         console.log('stdout: $', JSON.parse(stdout.join('')));
-        const fullPath = path.join(global.process.cwd(), outputJson.filename);
-        resolve(fullPath);
+        resolve(outputJson.filename);
       } else {
         reject(new Error(`yt-dlp process exited with code ${code}`));
       }

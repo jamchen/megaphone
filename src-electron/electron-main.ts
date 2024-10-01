@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
 import path from 'path';
 import os from 'os';
 import { createMenu } from './menu';
+import { downloadYouTubeVideo } from './yt-dlp';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -56,6 +57,10 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   }
   const result = await dialog.showSaveDialog(mainWindow, options);
   return result;
+});
+
+ipcMain.handle('download-youtbue-video', async (event, url) => {
+  return await downloadYouTubeVideo(url);
 });
 
 Menu.setApplicationMenu(createMenu());

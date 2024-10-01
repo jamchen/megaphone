@@ -43,12 +43,4 @@ yarn-error.log*
 *.srt
 *.wav
 
-# Ignore everything in the python folder
-python/*
-
-# Except the scripts directory and its contents
-!python/scripts/
-!python/scripts/**
-__pycache__
-
-ffmpeg/*
+bin/

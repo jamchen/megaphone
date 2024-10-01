@@ -10,36 +10,18 @@
 
 const { configure } = require('quasar/wrappers');
 
-const getStandalonePythonPath = (target, arch) => {
-  if (target === 'darwin' && arch === 'arm64') {
-    return 'python-aarch64-apple-darwin';
-  } else if (target === 'darwin' && arch === 'x64') {
-    return 'python-x86_64-apple-darwin';
-  } else if (target === 'win32' && arch === 'x64') {
-    return 'python-x86_64-pc-windows-msvc';
-  } else {
-    throw new Error(`Unsupported platform: ${target} and arch: ${arch}`);
-  }
-};
-
-const getStandaloneFFmpegPath = (target) => {
-  if (target === 'darwin') {
-    return 'darwin';
-  } else if (target === 'win32') {
-    return 'win32';
-  } else {
-    throw new Error(`Unsupported platform: ${target}`);
-  }
+const getStandaloneExecutablePath = (target, arch) => {
+  return `${target}-${arch}`;
 };
 
 module.exports = configure(function (ctx) {
-  console.log(`jamx: target: ${ctx.targetName}, arch: ${ctx.archName}`);
-  const standalonePythonPath = ctx.dev
+  console.log(
+    `jamx: is dev: ${ctx.dev} target: ${ctx.targetName}, arch: ${ctx.archName}`
+  );
+  const standaloneExecutablePath = ctx.dev
     ? ''
-    : getStandalonePythonPath(ctx.targetName, ctx.archName);
-  console.log(`jamx: standalonePythonPath: ${standalonePythonPath}`);
-  const standaloneFFmpegPath = getStandaloneFFmpegPath(ctx.targetName);
-  console.log(`jamx: standaloneFFmpegPath: ${standaloneFFmpegPath}`);
+    : getStandaloneExecutablePath(ctx.targetName, ctx.archName);
+  console.log(`jamx: standaloneExecutablePath: ${standaloneExecutablePath}`);
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -101,7 +83,7 @@ module.exports = configure(function (ctx) {
             },
             eslint: {
               lintCommand:
-                'eslint "./**/*.{js,ts,mjs,cjs,vue}" --ignore-pattern "python/**/*"',
+                'eslint "./**/*.{js,ts,mjs,cjs,vue}" --ignore-pattern "python/**/*" --ignore-pattern "bin/**/*"',
             },
           },
           { server: false },
@@ -212,11 +194,7 @@ module.exports = configure(function (ctx) {
         // protocol: 'myapp://path',
         // Windows only
         // win32metadata: { ... }
-        extraResource: [
-          'python/scripts',
-          `python/${standalonePythonPath}`,
-          `ffmpeg/${standaloneFFmpegPath}`,
-        ],
+        extraResource: ['python/scripts', `bin/${standaloneExecutablePath}`],
       },
 
       builder: {

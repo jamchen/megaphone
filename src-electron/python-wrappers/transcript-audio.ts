@@ -47,7 +47,6 @@ export const transcriptAudio = (
         console.log(`stdout: ${line}`); // Log the stdout data to the JavaScript console
         onProgress(line);
       } else {
-        console.log(`result: ${line}`); // Log the stdout data to the JavaScript console
         resultData += line;
       }
     });
@@ -65,7 +64,6 @@ export const transcriptAudio = (
     script.on('close', (code) => {
       if (code === 0) {
         try {
-          console.log(`resultData: ${resultData}`);
           const result = JSON.parse(resultData);
           resolve(result);
         } catch (error) {

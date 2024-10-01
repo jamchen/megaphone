@@ -42,3 +42,17 @@ Update requirements.txt:
 ```
 pip freeze > requirements.txt
 ```
+
+# build with quasar cli
+
+-T Electron with default "@electron/packager" bundler (default: yours)
+[darwin|win32|linux|mas|all]
+
+-A App architecture (default: yours) - with default "@electron/packager" bundler:
+[ia32|x64|armv7l|arm64|mips64el|all]
+
+```
+quasar build -m electron -T darwin -A arm64
+```
+
+ref: https://quasar.dev/quasar-cli-vite/commands-list#build

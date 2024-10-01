@@ -1,7 +1,7 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
-import { pythonExecutable, resourcesPath } from './common';
+import { pythonExecutable, scriptsPath } from './common';
 
 const extractPercentage = (input: string): number | null => {
   const percentageRegex = /(\d+)%/;
@@ -12,12 +12,7 @@ const extractPercentage = (input: string): number | null => {
   return null;
 };
 
-const transcribeScriptPath = path.join(
-  resourcesPath,
-  'python',
-  'scripts',
-  'transcribe.py'
-);
+const transcribeScriptPath = path.join(scriptsPath, 'transcribe.py');
 console.log(`transcribeScriptPath: ${transcribeScriptPath}`);
 
 export const transcriptAudio = (
@@ -26,16 +21,11 @@ export const transcriptAudio = (
   onProgress: (progress: string) => void
 ) => {
   return new Promise((resolve, reject) => {
-    const script = spawn(
-      pythonExecutable,
-      [transcribeScriptPath, audioFilePath, model],
-      {
-        env: {
-          ...process.env,
-          PATH: `${process.env.PATH}:/opt/homebrew/bin`,
-        },
-      }
-    );
+    const script = spawn(pythonExecutable, [
+      transcribeScriptPath,
+      audioFilePath,
+      model,
+    ]);
 
     let resultData = '';
 

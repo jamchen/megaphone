@@ -2,6 +2,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
 import { pythonExecutable, scriptsPath } from './common';
+import { getExecutableBasePath } from '../path-utils';
 
 const extractPercentage = (input: string): number | null => {
   const percentageRegex = /(\d+)%/;
@@ -21,11 +22,16 @@ export const transcriptAudio = (
   onProgress: (progress: string) => void
 ) => {
   return new Promise((resolve, reject) => {
-    const script = spawn(pythonExecutable, [
-      transcribeScriptPath,
-      audioFilePath,
-      model,
-    ]);
+    const script = spawn(
+      pythonExecutable,
+      [transcribeScriptPath, audioFilePath, model],
+      {
+        env: {
+          ...process.env,
+          PATH: process.env.PATH + `:${getExecutableBasePath()}`,
+        },
+      }
+    );
 
     let resultData = '';
 

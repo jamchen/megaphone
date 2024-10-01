@@ -9,57 +9,22 @@ export const getStandaloneExecutablePath = () => {
 
 const isDev = process.env.NODE_ENV === 'development';
 
-export const getYtDlpExecutablePath = () => {
+export const getExecutableBasePath = () => {
   if (isDev) {
-    return path.join(
-      process.cwd(),
-      'bin',
-      getStandaloneExecutablePath(),
-      'yt-dlp'
-    );
+    return path.join(process.cwd(), 'bin', getStandaloneExecutablePath());
   } else {
-    return path.join(
-      process.resourcesPath,
-      getStandaloneExecutablePath(),
-      'yt-dlp'
-    );
+    return path.join(process.resourcesPath, getStandaloneExecutablePath());
   }
+};
+
+export const getYtDlpExecutablePath = () => {
+  return path.join(getExecutableBasePath(), 'yt-dlp');
 };
 
 export const getFFmpegExecutablePath = () => {
-  if (isDev) {
-    return path.join(
-      process.cwd(),
-      'bin',
-      getStandaloneExecutablePath(),
-      'ffmpeg'
-    );
-  } else {
-    return path.join(
-      process.resourcesPath,
-      getStandaloneExecutablePath(),
-      'ffmpeg'
-    );
-  }
+  return path.join(getExecutableBasePath(), 'ffmpeg');
 };
 
 export const getPythonExecutable = () => {
-  if (isDev) {
-    return path.join(
-      process.cwd(),
-      'bin',
-      getStandaloneExecutablePath(),
-      'python',
-      'bin',
-      'python'
-    );
-  } else {
-    return path.join(
-      process.resourcesPath,
-      getStandaloneExecutablePath(),
-      'python',
-      'bin',
-      'python'
-    );
-  }
+  return path.join(getExecutableBasePath(), 'python', 'bin', 'python');
 };

@@ -35,20 +35,6 @@ export function extractAudio(
   inputFile: string,
   outputFile: string
 ): Promise<void> {
-  exec(
-    'python -c "import platform; print(platform.architecture())"',
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing python: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        console.error(`python stderr: ${stderr}`);
-      }
-      console.log(`python stdout: ${stdout}`);
-    }
-  );
-
   return new Promise((resolve, reject) => {
     const command = `"${getFFmpegExecutablePath()}" -y -i "${inputFile}" -q:a 0 -map a "${outputFile}"`;
     exec(

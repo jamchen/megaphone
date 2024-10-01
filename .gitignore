@@ -36,12 +36,19 @@ yarn-error.log*
 # local .env files
 .env.local*
 
-# python
-__pycache__
-
 # Virtual environment
 /python/venv
 
 *.mp4
 *.srt
 *.wav
+
+# Ignore everything in the python folder
+python/*
+
+# Except the scripts directory and its contents
+!python/scripts/
+!python/scripts/**
+__pycache__
+
+ffmpeg/*

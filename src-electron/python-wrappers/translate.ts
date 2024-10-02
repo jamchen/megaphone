@@ -1,13 +1,8 @@
 import path from 'path';
 import { execFile } from 'child_process';
-import { pythonExecutable, resourcesPath } from './common';
+import { pythonExecutable, scriptsPath } from './common';
 
-const translateScriptPath = path.join(
-  resourcesPath,
-  'python',
-  'scripts',
-  'translate-string.py'
-);
+const translateScriptPath = path.join(scriptsPath, 'translate-string.py');
 console.log(`translateScriptPath: ${translateScriptPath}`);
 
 export function translate(
@@ -19,12 +14,6 @@ export function translate(
     execFile(
       pythonExecutable,
       [translateScriptPath, text, sourceLang, targetLang],
-      {
-        env: {
-          ...process.env,
-          PATH: `${process.env.PATH}:/opt/homebrew/bin`,
-        },
-      },
       (error, stdout, stderr) => {
         if (error) {
           reject(`Error: ${error.message}`);

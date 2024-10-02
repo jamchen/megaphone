@@ -10,7 +10,18 @@
 
 const { configure } = require('quasar/wrappers');
 
-module.exports = configure(function (/* ctx */) {
+const getStandaloneExecutablePath = (target, arch) => {
+  return `${target}-${arch}`;
+};
+
+module.exports = configure(function (ctx) {
+  console.log(
+    `jamx: is dev: ${ctx.dev} target: ${ctx.targetName}, arch: ${ctx.archName}`
+  );
+  const standaloneExecutablePath = ctx.dev
+    ? ''
+    : getStandaloneExecutablePath(ctx.targetName, ctx.archName);
+  console.log(`jamx: standaloneExecutablePath: ${standaloneExecutablePath}`);
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -71,7 +82,8 @@ module.exports = configure(function (/* ctx */) {
               tsconfigPath: 'tsconfig.vue-tsc.json',
             },
             eslint: {
-              lintCommand: 'eslint "./**/*.{js,ts,mjs,cjs,vue}"',
+              lintCommand:
+                'eslint "./**/*.{js,ts,mjs,cjs,vue}" --ignore-pattern "python/**/*" --ignore-pattern "bin/**/*"',
             },
           },
           { server: false },
@@ -182,7 +194,7 @@ module.exports = configure(function (/* ctx */) {
         // protocol: 'myapp://path',
         // Windows only
         // win32metadata: { ... }
-        extraResource: ['python'],
+        extraResource: ['python/scripts', `bin/${standaloneExecutablePath}`],
       },
 
       builder: {

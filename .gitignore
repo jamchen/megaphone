@@ -36,12 +36,11 @@ yarn-error.log*
 # local .env files
 .env.local*
 
-# python
-__pycache__
-
 # Virtual environment
 /python/venv
 
 *.mp4
 *.srt
 *.wav
+
+bin/

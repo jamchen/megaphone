@@ -1,7 +1,8 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
-import { pythonExecutable, resourcesPath } from './common';
+import { pythonExecutable, scriptsPath } from './common';
+import { getExecutableBasePath } from '../path-utils';
 
 const extractPercentage = (input: string): number | null => {
   const percentageRegex = /(\d+)%/;
@@ -12,12 +13,7 @@ const extractPercentage = (input: string): number | null => {
   return null;
 };
 
-const transcribeScriptPath = path.join(
-  resourcesPath,
-  'python',
-  'scripts',
-  'transcribe.py'
-);
+const transcribeScriptPath = path.join(scriptsPath, 'transcribe.py');
 console.log(`transcribeScriptPath: ${transcribeScriptPath}`);
 
 export const transcriptAudio = (
@@ -32,7 +28,7 @@ export const transcriptAudio = (
       {
         env: {
           ...process.env,
-          PATH: `${process.env.PATH}:/opt/homebrew/bin`,
+          PATH: process.env.PATH + `:${getExecutableBasePath()}`,
         },
       }
     );
@@ -51,7 +47,6 @@ export const transcriptAudio = (
         console.log(`stdout: ${line}`); // Log the stdout data to the JavaScript console
         onProgress(line);
       } else {
-        console.log(`result: ${line}`); // Log the stdout data to the JavaScript console
         resultData += line;
       }
     });
@@ -69,7 +64,6 @@ export const transcriptAudio = (
     script.on('close', (code) => {
       if (code === 0) {
         try {
-          console.log(`resultData: ${resultData}`);
           const result = JSON.parse(resultData);
           resolve(result);
         } catch (error) {

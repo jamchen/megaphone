@@ -7,9 +7,15 @@ export const useProjectStore = defineStore('project', {
     youTubeVideoUrl: undefined as string | undefined,
     videoCurrentTime: 0 as number,
     editingSubtitle: false as boolean,
+    videoSourceTab: 'standard',
   }),
 
   persist: {
-    pick: ['videoFilePath', 'audioFilePath', 'youTubeVideoUrl'],
+    pick: [
+      'videoFilePath',
+      'audioFilePath',
+      'youTubeVideoUrl',
+      'videoSourceTab',
+    ],
   },
 });

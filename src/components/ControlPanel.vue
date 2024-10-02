@@ -2,18 +2,76 @@
   <div>
     <q-card class="q-ma-sm" flat bordered>
       <q-chip>選擇來源</q-chip>
+      <q-separator />
+      <q-tabs
+        v-model="videoSourceTab"
+        dense
+        class="text-grey"
+        active-color="primary"
+        indicator-color="primary"
+        align="left"
+        narrow-indicator
+      >
+        <q-tab name="standard" label="製作完整影片字幕" />
+        <q-tab name="trim-yt-video" label="截取YT影片" />
+      </q-tabs>
+      <q-separator inset />
       <q-card-section>
-        <div class="q-gutter-sm">
-          <q-btn label="選擇影片" outline @click="selectVideoFile" />
-          <input
-            type="file"
-            ref="videoFileInput"
-            accept="video/*"
-            style="display: none"
-            @change="changeVideoFile"
-          />
-          <q-btn label="下載YT影片" outline @click="doDownloadYouTubeVideo" />
-        </div>
+        <q-tab-panels v-model="videoSourceTab" animated>
+          <q-tab-panel name="standard">
+            <div class="q-gutter-sm">
+              <q-btn label="選擇影片" outline @click="selectVideoFile" />
+              <input
+                type="file"
+                ref="videoFileInput"
+                accept="video/*"
+                style="display: none"
+                @change="changeVideoFile"
+              />
+              <q-btn
+                label="下載YT影片"
+                outline
+                @click="doDownloadYouTubeVideo"
+              />
+            </div>
+          </q-tab-panel>
+          <q-tab-panel name="trim-yt-video" class="q-col-gutter-sm">
+            <div class="row">
+              <q-input
+                class="col"
+                dense
+                outlined
+                v-model="youTubeVideoUrl"
+                label="輸入YT影片網址"
+              />
+            </div>
+            <div class="row q-col-gutter-sm">
+              <q-input
+                class="col"
+                dense
+                outlined
+                v-model="startTime"
+                placeholder="00:01:30"
+                label="請輸入開始時間"
+              />
+              <q-input
+                class="col"
+                dense
+                outlined
+                v-model="endTime"
+                placeholder="00:02:30"
+                label="請輸入結束時間"
+              />
+              <q-btn
+                class="col q-mt-sm q-ml-sm"
+                label="下載片段"
+                color="primary"
+                :disable="!readyToDownloadYouTubeVideoSegment"
+                @click="downloadYouTubeVideoSegment"
+              />
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
         <q-toggle
           v-model="autoMode"
           label="當影片下載完後自動轉錄"
@@ -28,6 +86,7 @@
           &nbsp;*第一次轉錄或者是切換不同選項會花比較久時間下載AI模型
         </span>
       </q-chip>
+      <q-separator />
       <q-card-section>
         <div class="row q-gutter-sm">
           <q-btn
@@ -56,10 +115,11 @@ import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useProjectStore } from 'src/stores/project';
 import { useSubtitlesStore } from 'src/stores/subtitles';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const projectStore = useProjectStore();
-const { videoFilePath, audioFilePath } = storeToRefs(projectStore);
+const { videoFilePath, audioFilePath, youTubeVideoUrl, videoSourceTab } =
+  storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
@@ -68,6 +128,18 @@ const { downloadYouTubeVideo, getPathForFile, extractAudio, transcribeAudio } =
 
 const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
+const startTime = ref<string | undefined>();
+const endTime = ref<string | undefined>();
+const readyToDownloadYouTubeVideoSegment = computed(() => {
+  return (
+    youTubeVideoUrl.value != undefined &&
+    youTubeVideoUrl.value.length > 0 &&
+    startTime.value != undefined &&
+    startTime.value.length > 0 &&
+    endTime.value != undefined &&
+    endTime.value.length > 0
+  );
+});
 
 const selectVideoFile = () => {
   videoFileInput.value?.click();
@@ -191,109 +263,136 @@ function formatDuration(ms: number): string {
   return `${hoursStr}${minutesStr}${secondsStr}`.trim() || '0s';
 }
 
+const downloadYouTubeVideoAndMaybeTranscribe = async (
+  videoUrl: string,
+  startTime: string | undefined = undefined,
+  endTime: string | undefined = undefined
+) => {
+  try {
+    // Mark the start time
+    performance.mark('start-download');
+
+    console.log('Downloading YouTube video:', videoUrl);
+    const ytVideoFilePath = await downloadYouTubeVideo(
+      videoUrl,
+      startTime,
+      endTime
+    );
+    console.log('Downloaded YouTube video:', ytVideoFilePath);
+    videoFilePath.value = ytVideoFilePath;
+    audioFilePath.value = undefined;
+    clearSubtitles();
+
+    // Mark the end time for download
+    performance.mark('end-download');
+
+    if (autoMode.value) {
+      // Mark the start time for audio extraction
+      performance.mark('start-extract-audio');
+
+      await doExtractAudio();
+
+      // Mark the end time for audio extraction
+      performance.mark('end-extract-audio');
+
+      // Mark the start time for audio transcription
+      performance.mark('start-transcribe-audio');
+
+      await doTranscribeAudio(selectedModelSize.value);
+
+      // Mark the end time for audio transcription
+      performance.mark('end-transcribe-audio');
+    }
+
+    // Measure the duration for download
+    performance.measure('download-duration', 'start-download', 'end-download');
+    const downloadDuration =
+      performance.getEntriesByName('download-duration')[0].duration;
+    console.log(`Download duration: ${formatDuration(downloadDuration)}`);
+
+    if (autoMode.value) {
+      // Measure the duration for audio extraction
+      performance.measure(
+        'extract-audio-duration',
+        'start-extract-audio',
+        'end-extract-audio'
+      );
+      const extractAudioDuration = performance.getEntriesByName(
+        'extract-audio-duration'
+      )[0].duration;
+      console.log(
+        `Audio extraction duration: ${formatDuration(extractAudioDuration)}`
+      );
+
+      // Measure the duration for audio transcription
+      performance.measure(
+        'transcribe-audio-duration',
+        'start-transcribe-audio',
+        'end-transcribe-audio'
+      );
+      const transcribeAudioDuration = performance.getEntriesByName(
+        'transcribe-audio-duration'
+      )[0].duration;
+      console.log(
+        `Audio transcription duration: ${formatDuration(
+          transcribeAudioDuration
+        )}`
+      );
+
+      // Calculate and log the total duration
+      const totalDuration =
+        downloadDuration + extractAudioDuration + transcribeAudioDuration;
+      console.log(`Total duration: ${formatDuration(totalDuration)}`);
+    }
+
+    // Clear the performance entries
+    performance.clearMarks();
+    performance.clearMeasures();
+  } catch (error) {
+    notifyError(error);
+  }
+};
 const doDownloadYouTubeVideo = async () => {
   $q.dialog({
     title: 'Enter YouTube Video URL',
     message: 'Enter the URL of the YouTube video to download',
     prompt: {
-      model: 'https://www.youtube.com/watch?v=-lPuxo8aVYE',
+      model: '',
       type: 'text',
     },
     cancel: true,
     persistent: true,
   }).onOk(async (videoUrl) => {
-    try {
-      if (!videoUrl) {
-        return;
-      }
-      $q.loading.show({
-        message: '下載YT影片',
-      });
-
-      // Mark the start time
-      performance.mark('start-download');
-
-      console.log('Downloading YouTube video:', videoUrl);
-      const ytVideoFilePath = await downloadYouTubeVideo(videoUrl);
-      console.log('Downloaded YouTube video:', ytVideoFilePath);
-      videoFilePath.value = ytVideoFilePath;
-      audioFilePath.value = undefined;
-      clearSubtitles();
-
-      // Mark the end time for download
-      performance.mark('end-download');
-
-      if (autoMode.value) {
-        // Mark the start time for audio extraction
-        performance.mark('start-extract-audio');
-
-        await doExtractAudio();
-
-        // Mark the end time for audio extraction
-        performance.mark('end-extract-audio');
-
-        // Mark the start time for audio transcription
-        performance.mark('start-transcribe-audio');
-
-        await doTranscribeAudio(selectedModelSize.value);
-
-        // Mark the end time for audio transcription
-        performance.mark('end-transcribe-audio');
-      }
-
-      // Measure the duration for download
-      performance.measure(
-        'download-duration',
-        'start-download',
-        'end-download'
-      );
-      const downloadDuration =
-        performance.getEntriesByName('download-duration')[0].duration;
-      console.log(`Download duration: ${formatDuration(downloadDuration)}`);
-
-      if (autoMode.value) {
-        // Measure the duration for audio extraction
-        performance.measure(
-          'extract-audio-duration',
-          'start-extract-audio',
-          'end-extract-audio'
-        );
-        const extractAudioDuration = performance.getEntriesByName(
-          'extract-audio-duration'
-        )[0].duration;
-        console.log(
-          `Audio extraction duration: ${formatDuration(extractAudioDuration)}`
-        );
-
-        // Measure the duration for audio transcription
-        performance.measure(
-          'transcribe-audio-duration',
-          'start-transcribe-audio',
-          'end-transcribe-audio'
-        );
-        const transcribeAudioDuration = performance.getEntriesByName(
-          'transcribe-audio-duration'
-        )[0].duration;
-        console.log(
-          `Audio transcription duration: ${formatDuration(
-            transcribeAudioDuration
-          )}`
-        );
-
-        // Calculate and log the total duration
-        const totalDuration =
-          downloadDuration + extractAudioDuration + transcribeAudioDuration;
-        console.log(`Total duration: ${formatDuration(totalDuration)}`);
-      }
-
-      // Clear the performance entries
-      performance.clearMarks();
-      performance.clearMeasures();
-    } catch (error) {
-      notifyError(error);
+    if (!videoUrl) {
+      return;
     }
+    $q.loading.show({
+      message: '下載YT影片',
+    });
+    await downloadYouTubeVideoAndMaybeTranscribe(videoUrl);
     $q.loading.hide();
   });
+};
+
+const downloadYouTubeVideoSegment = async () => {
+  if (!youTubeVideoUrl.value) {
+    return;
+  }
+  if (!startTime.value) {
+    return;
+  }
+  if (!endTime.value) {
+    return;
+  }
+  $q.loading.show({
+    message: '下載YT影片',
+  });
+  await downloadYouTubeVideoAndMaybeTranscribe(
+    youTubeVideoUrl.value,
+    startTime.value,
+    endTime.value
+  );
+  $q.loading.hide();
 };
 </script>
 

@@ -2,8 +2,16 @@
   <div class="row">
     <div class="col-xs-auto q-pa-sm q-gutter-xs">
       <div class="row">
-        <q-btn icon="file_open" @click="selectSrtFile" size="sm">
-          <q-tooltip>Load Subtitles</q-tooltip>
+        <q-btn
+          class="full-width"
+          stack
+          label="載入字幕"
+          outline
+          icon="file_open"
+          @click="selectSrtFile"
+          size="sm"
+        >
+          <q-tooltip>載入字幕</q-tooltip>
         </q-btn>
         <input
           type="file"
@@ -14,13 +22,29 @@
         />
       </div>
       <div class="row">
-        <q-btn icon="save" @click="exportSubtitlesAsSrt" size="sm">
-          <q-tooltip>Export Subtitles</q-tooltip>
+        <q-btn
+          class="full-width"
+          stack
+          label="輸出成字幕檔"
+          outline
+          icon="save"
+          @click="exportSubtitlesAsSrt"
+          size="sm"
+        >
+          <q-tooltip>輸出成字幕檔</q-tooltip>
         </q-btn>
       </div>
       <div class="row">
-        <q-btn icon="translate" @click="translateSubtitles" size="sm">
-          <q-tooltip>Translate Subtitles</q-tooltip>
+        <q-btn
+          class="full-width"
+          stack
+          label="翻譯字幕"
+          outline
+          icon="translate"
+          @click="translateSubtitles"
+          size="sm"
+        >
+          <q-tooltip>翻譯字幕</q-tooltip>
         </q-btn>
       </div>
     </div>
@@ -36,6 +60,7 @@
             :bordered="subtitle === selectedSubtitle"
             @click="selectSubtitle(subtitle)"
             ref="subtitleCards"
+            flat
           >
             <q-card-section>
               {{ subtitle.text }}
@@ -226,7 +251,9 @@ const loadSrtContent = (content: string) => {
 };
 
 const translateSubtitles = async () => {
-  $q.loading.show();
+  $q.loading.show({
+    message: '翻譯字幕',
+  });
   const subtitles = subtitlesStore.subtitles;
   subtitlesStore.translatedSubtitles = [];
   for (const subtitle of subtitles) {

@@ -2,13 +2,15 @@
   <div>
     <q-input
       v-model="model.text"
-      label="Edit Subtitle"
+      label="編輯字幕"
+      hint="編輯完同時按Enter + ⌘或⊞或alt可以恢復播放"
       outlined
       type="textarea"
       @keydown.space.stop
       @focus="editingSubtitle = true"
-      @blur="editingSubtitle = false"
+      @blur="onBlur"
       @keydown.meta.enter="textInput?.blur()"
+      @keydown.alt.enter="textInput?.blur()"
       ref="textInput"
     />
   </div>
@@ -24,6 +26,12 @@ const model = defineModel<Subtitle>({ default: {} });
 const projectStore = useProjectStore();
 const { editingSubtitle } = storeToRefs(projectStore);
 const textInput = ref<QInput | null>();
+
+const onBlur = (event: Event) => {
+  if (window.document.activeElement != event.target) {
+    editingSubtitle.value = false;
+  }
+};
 </script>
 
 <style scoped></style>

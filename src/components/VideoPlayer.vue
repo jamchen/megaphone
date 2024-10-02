@@ -48,11 +48,17 @@ watch(selectedSubtitle, (newSubtitle) => {
   }
 });
 
+let resumePlaybackWhenExitEditing = false;
+
 watch(editingSubtitle, (editingSubtitle) => {
   if (editingSubtitle && videoElement.value) {
-    videoElement.value.pause();
+    resumePlaybackWhenExitEditing = !player.value?.paused();
+    player.value?.pause();
   } else if (!editingSubtitle && videoElement.value) {
-    videoElement.value.play();
+    if (resumePlaybackWhenExitEditing) {
+      player.value?.play();
+      resumePlaybackWhenExitEditing = false;
+    }
   }
 });
 

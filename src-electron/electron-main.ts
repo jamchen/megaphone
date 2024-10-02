@@ -48,7 +48,7 @@ function createWindow() {
     mainWindow = undefined;
   });
 }
-
+app.disableHardwareAcceleration();
 app.whenReady().then(createWindow);
 
 ipcMain.handle('show-save-dialog', async (event, options) => {
@@ -59,9 +59,12 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
   return result;
 });
 
-ipcMain.handle('download-youtbue-video', async (event, url) => {
-  return await downloadYouTubeVideo(url);
-});
+ipcMain.handle(
+  'download-youtbue-video',
+  async (event, { url, startTime, endTime }) => {
+    return await downloadYouTubeVideo(url, startTime, endTime);
+  }
+);
 
 Menu.setApplicationMenu(createMenu());
 

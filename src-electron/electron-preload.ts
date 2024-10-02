@@ -37,7 +37,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showSaveDialog: async (options: Electron.SaveDialogOptions) => {
     return await ipcRenderer.invoke('show-save-dialog', options);
   },
-  downloadYouTubeVideo: async (url: string) => {
-    return await ipcRenderer.invoke('download-youtbue-video', url);
+  downloadYouTubeVideo: async (
+    url: string,
+    startTime: string | undefined,
+    endTime: string | undefined
+  ) => {
+    return await ipcRenderer.invoke('download-youtbue-video', {
+      url,
+      startTime: startTime,
+      endTime: endTime,
+    });
   },
 });

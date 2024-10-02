@@ -9,11 +9,15 @@
         style="display: none"
         @change="changeVideoFile"
       />
+    </div>
+    <div class="row q-gutter-sm">
       <q-btn
         label="Download YT Video"
         color="primary"
         @click="doDownloadYouTubeVideo"
       />
+    </div>
+    <div class="row q-gutter-sm">
       <q-toggle
         v-model="autoMode"
         label="Automatically transcribe the video after it is downloaded"
@@ -23,7 +27,6 @@
     <div class="row q-gutter-sm"></div>
     <div class="row q-gutter-sm">
       <q-btn
-        class="col-xs-12 col-sm-6 col-md-4"
         label="Extract Audio"
         color="primary"
         @click="doExtractAudio"
@@ -32,14 +35,15 @@
     </div>
     <div class="row q-gutter-sm">
       <q-btn
-        class="col-xs-12 col-sm-6 col-md-4"
         @click="doTranscribeAudio(selectedModelSize)"
         label="Transcribe Audio"
         color="primary"
         :disable="audioFilePath == undefined"
       ></q-btn>
+    </div>
+    <div class="row q-gutter-sm">
       <q-select
-        class="col-xs-12 col-sm-6 col-md-4"
+        class="col-5"
         v-model="selectedModelSize"
         :options="modelSizes"
         label="Select Whisper Model Size"
@@ -51,29 +55,6 @@
       />
       <div v-if="progress">{{ progress }}</div>
     </div>
-    <div class="row q-gutter-sm">
-      <q-btn
-        class="col-xs-12 col-sm-6 col-md-4"
-        @click="selectSrtFile"
-        label="Load Existing SRT File"
-        color="secondary"
-      ></q-btn>
-      <input
-        type="file"
-        ref="srtFileInput"
-        accept=".srt"
-        style="display: none"
-        @change="onSrtFileChange"
-      />
-    </div>
-    <div class="row q-gutter-sm">
-      <q-btn
-        class="col-xs-12 col-sm-6 col-md-4"
-        @click="translateSubtitles"
-        label="Translate Subtitles"
-        color="secondary"
-      ></q-btn>
-    </div>
   </div>
 </template>
 
@@ -83,20 +64,14 @@ import { useQuasar } from 'quasar';
 import { useProjectStore } from 'src/stores/project';
 import { useSubtitlesStore } from 'src/stores/subtitles';
 import { ref } from 'vue';
-import srtParser from 'subtitles-parser-vtt';
 
 const projectStore = useProjectStore();
 const { videoFilePath, audioFilePath } = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
-const {
-  downloadYouTubeVideo,
-  getPathForFile,
-  pythonTranslate,
-  extractAudio,
-  transcribeAudio,
-} = window.electronAPI;
+const { downloadYouTubeVideo, getPathForFile, extractAudio, transcribeAudio } =
+  window.electronAPI;
 
 const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
@@ -112,6 +87,7 @@ const changeVideoFile = (event: Event) => {
     videoFilePath.value = getPathForFile(videoFile);
     audioFilePath.value = undefined;
     clearSubtitles();
+    input.value = '';
   }
 };
 
@@ -185,68 +161,6 @@ const doTranscribeAudio = async (model: WhisperModelSize) => {
   $q.loading.hide();
 };
 
-const srtFileInput = ref<HTMLInputElement | null>(null);
-
-// Function to trigger file input click
-const selectSrtFile = () => {
-  srtFileInput.value?.click();
-};
-
-// Function to handle file input change
-const onSrtFileChange = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (input.files && input.files[0]) {
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      loadSrtContent(content);
-    };
-    reader.readAsText(file);
-  }
-};
-
-// Function to parse and load SRT content into subtitles store
-const loadSrtContent = (content: string) => {
-  const subtitles = srtParser.fromVtt(content, 'ms');
-  subtitlesStore.clearSubtitles();
-  subtitles.forEach((subtitle) => {
-    addSubtitle({
-      start: subtitle.startTime / 1000,
-      end: subtitle.endTime / 1000,
-      text: subtitle.text,
-    });
-  });
-};
-
-const translateSubtitles = async () => {
-  $q.loading.show();
-  const subtitles = subtitlesStore.subtitles;
-  subtitlesStore.translatedSubtitles = [];
-  for (const subtitle of subtitles) {
-    try {
-      // const translation = await googleTranslate(subtitle.text, {
-      //   to: 'en',
-      // });
-      // translatedSubtitle = translation.text;
-      const translatedSubtitle = await pythonTranslate(
-        subtitle.text,
-        'zh-TW',
-        'en'
-      );
-      subtitlesStore.translatedSubtitles.push({
-        start: subtitle.start,
-        end: subtitle.end,
-        text: translatedSubtitle,
-      });
-    } catch (error) {
-      notifyError(error);
-      break;
-    }
-  }
-  $q.loading.hide();
-};
-
 const notifyError = (error: unknown) => {
   console.error(error);
   $q.notify({
@@ -272,7 +186,7 @@ const doDownloadYouTubeVideo = async () => {
     title: 'Enter YouTube Video URL',
     message: 'Enter the URL of the YouTube video to download',
     prompt: {
-      model: '',
+      model: 'https://www.youtube.com/watch?v=-lPuxo8aVYE',
       type: 'text',
     },
     cancel: true,

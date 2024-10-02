@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="row">
-      <div class="col-5">
+      <div class="col-8">
         <VideoPlayer v-if="videoUrl" class="full-width" :videoUrl="videoUrl" />
       </div>
       <div class="col">

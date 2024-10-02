@@ -1,12 +1,31 @@
 <template>
   <div class="row">
-    <div class="col-xs-auto q-pa-sm">
-      <q-btn icon="save" @click="exportSubtitlesAsSrt" size="sm">
-        <q-tooltip>Export Subtitles</q-tooltip>
-      </q-btn>
+    <div class="col-xs-auto q-pa-sm q-gutter-xs">
+      <div class="row">
+        <q-btn icon="file_open" @click="selectSrtFile" size="sm">
+          <q-tooltip>Load Subtitles</q-tooltip>
+        </q-btn>
+        <input
+          type="file"
+          ref="srtFileInput"
+          accept=".srt"
+          style="display: none"
+          @change="onSrtFileChange"
+        />
+      </div>
+      <div class="row">
+        <q-btn icon="save" @click="exportSubtitlesAsSrt" size="sm">
+          <q-tooltip>Export Subtitles</q-tooltip>
+        </q-btn>
+      </div>
+      <div class="row">
+        <q-btn icon="translate" @click="translateSubtitles" size="sm">
+          <q-tooltip>Translate Subtitles</q-tooltip>
+        </q-btn>
+      </div>
     </div>
     <div class="col">
-      <q-scroll-area class="full-width bg-dark q-pt-sm" style="height: 202px">
+      <q-scroll-area class="full-width q-pt-sm" style="height: 202px">
         <div class="row no-wrap">
           <q-card
             v-for="(subtitle, index) in subtitles"
@@ -63,23 +82,29 @@ import {
   ComponentPublicInstance,
   toRaw,
   nextTick,
+  ref,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSubtitlesStore } from 'stores/subtitles';
 import { useProjectStore } from 'src/stores/project';
+import srtParser from 'subtitles-parser-vtt';
+import { useQuasar } from 'quasar';
 
 const props = defineProps<{
   subtitles: Subtitle[];
 }>();
 
+const $q = useQuasar();
+
 const subtitlesStore = useSubtitlesStore();
 const { selectedSubtitle } = storeToRefs(subtitlesStore);
-const selectSubtitle = subtitlesStore.selectSubtitle;
+const { selectSubtitle, addSubtitle } = subtitlesStore;
 
 const projectStore = useProjectStore();
 const { videoCurrentTime, videoFilePath } = storeToRefs(projectStore);
 
-const { showSaveDialog, exportSubtitles, basename } = window.electronAPI;
+const { showSaveDialog, exportSubtitles, basename, pythonTranslate } =
+  window.electronAPI;
 
 const subtitleCards =
   useTemplateRef<ComponentPublicInstance<HTMLElement>[]>('subtitleCards');
@@ -163,6 +188,78 @@ const removeSubtitlesToRight = (index: number) => {
 const removeSubtitleAt = (index: number) => {
   // TODO: should propgate the change to the store via vue event
   subtitlesStore.subtitles = props.subtitles.filter((_, i) => i !== index);
+};
+
+const srtFileInput = ref<HTMLInputElement | null>(null);
+
+// Function to trigger file input click
+const selectSrtFile = () => {
+  srtFileInput.value?.click();
+};
+
+// Function to handle file input change
+const onSrtFileChange = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      loadSrtContent(content);
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
+};
+
+// Function to parse and load SRT content into subtitles store
+const loadSrtContent = (content: string) => {
+  const subtitles = srtParser.fromVtt(content, 'ms');
+  subtitlesStore.clearSubtitles();
+  subtitles.forEach((subtitle) => {
+    addSubtitle({
+      start: subtitle.startTime / 1000,
+      end: subtitle.endTime / 1000,
+      text: subtitle.text,
+    });
+  });
+};
+
+const translateSubtitles = async () => {
+  $q.loading.show();
+  const subtitles = subtitlesStore.subtitles;
+  subtitlesStore.translatedSubtitles = [];
+  for (const subtitle of subtitles) {
+    try {
+      // const translation = await googleTranslate(subtitle.text, {
+      //   to: 'en',
+      // });
+      // translatedSubtitle = translation.text;
+      const translatedSubtitle = await pythonTranslate(
+        subtitle.text,
+        'zh-TW',
+        'en'
+      );
+      // subtitlesStore.translatedSubtitles.push({
+      //   start: subtitle.start,
+      //   end: subtitle.end,
+      //   text: translatedSubtitle,
+      // });
+      subtitle.text = translatedSubtitle;
+    } catch (error) {
+      notifyError(error);
+      break;
+    }
+  }
+  $q.loading.hide();
+};
+
+const notifyError = (error: unknown) => {
+  console.error(error);
+  $q.notify({
+    type: 'negative',
+    message: typeof error === 'string' ? error : String(error),
+  });
 };
 </script>
 

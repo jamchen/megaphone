@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
 import path from 'path';
 import { getFFmpegExecutablePath, getYtDlpExecutablePath } from './path-utils';
 import { app } from 'electron';
@@ -8,41 +8,56 @@ import { app } from 'electron';
  * @param url - The YouTube URL to download.
  * @returns A promise that resolves when the download is complete.
  */
-export function downloadYouTubeVideo(url: string): Promise<string> {
+export function downloadYouTubeVideo(
+  url: string,
+  startTime: string | undefined = undefined,
+  endTime: string | undefined = undefined
+): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const command = getYtDlpExecutablePath();
-    // const args = ['-j', '-S', '+codec:avc:m4a', url];
     const downloadPath = await app.getPath('downloads');
+    let outputFormat = '%(title)s-%(id)s.%(ext)s';
+    let downloadSectionsArgs: string[] = [];
+    if (startTime && endTime) {
+      downloadSectionsArgs = [
+        '--download-sections',
+        `"*${startTime}-${endTime}"`,
+        '--force-keyframes-at-cuts',
+      ];
+      outputFormat = `%(title)s-%(id)s-${startTime}-${endTime}.%(ext)s`;
+    }
     const args = [
       '-j',
       '--no-simulate',
+      // '--print',
+      // 'filename',
       '--ffmpeg-location',
       getFFmpegExecutablePath(),
       '-S',
       '+codec:avc:m4a',
+      ...downloadSectionsArgs,
       '-o',
-      path.join(downloadPath, '%(title)s-%(id)s.%(ext)s'),
+      `"${path.join(downloadPath, outputFormat)}"`,
       url,
     ];
-
+    console.log('yt-dlp args', args);
     console.log('yt-dlp command:', `${command} ${args.join(' ')}`);
-    const process = spawn(command, args);
-    const stdout: string[] = [];
-    process.stdout.on('data', (data) => {
-      stdout.push(data.toString());
-    });
-
-    process.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-    });
-
-    process.on('close', (code) => {
-      if (code === 0) {
-        const outputJson = JSON.parse(stdout.join(''));
-        console.log('stdout: $', JSON.parse(stdout.join('')));
+    exec(`${command} ${args.join(' ')}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing ffmpeg: ${error.message}`);
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        console.error(`ffmpeg stderr: ${stderr}`);
+      }
+      console.log(`ffmpeg stdout: ${stdout}`);
+      try {
+        console.log('jamx:', stdout);
+        const outputJson = JSON.parse(stdout);
         resolve(outputJson.filename);
-      } else {
-        reject(new Error(`yt-dlp process exited with code ${code}`));
+      } catch (err) {
+        reject(err);
       }
     });
   });

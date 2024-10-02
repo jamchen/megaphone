@@ -83,7 +83,11 @@ interface ElectronAPI {
   showSaveDialog: (
     options: Electron.SaveDialogOptions
   ) => Promise<Electron.SaveDialogReturnValue>;
-  downloadYouTubeVideo: (url: string) => Promise<string>;
+  downloadYouTubeVideo: (
+    url: string,
+    startTime?: string,
+    endTime?: string
+  ) => Promise<string>;
 }
 
 interface Window {

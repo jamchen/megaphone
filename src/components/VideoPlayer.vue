@@ -25,7 +25,7 @@ const subtitlesStore = useSubtitlesStore();
 const { selectedSubtitle, subtitles, translatedSubtitles } =
   storeToRefs(subtitlesStore);
 const projectStore = useProjectStore();
-const { videoCurrentTime } = storeToRefs(projectStore);
+const { videoCurrentTime, editingSubtitle } = storeToRefs(projectStore);
 const videoElement = ref<HTMLVideoElement | null>(null);
 
 watch(selectedSubtitle, (newSubtitle) => {
@@ -45,6 +45,14 @@ watch(selectedSubtitle, (newSubtitle) => {
     ) {
       videoElement.value.currentTime = newSubtitle.start;
     }
+  }
+});
+
+watch(editingSubtitle, (editingSubtitle) => {
+  if (editingSubtitle && videoElement.value) {
+    videoElement.value.pause();
+  } else if (!editingSubtitle && videoElement.value) {
+    videoElement.value.play();
   }
 });
 

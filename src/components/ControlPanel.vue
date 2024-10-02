@@ -1,60 +1,53 @@
 <template>
-  <div class="q-gutter-sm">
-    <div class="row q-gutter-sm">
-      <q-btn label="Select Video" color="primary" @click="selectVideoFile" />
-      <input
-        type="file"
-        ref="videoFileInput"
-        accept="video/*"
-        style="display: none"
-        @change="changeVideoFile"
-      />
-    </div>
-    <div class="row q-gutter-sm">
-      <q-btn
-        label="Download YT Video"
-        color="primary"
-        @click="doDownloadYouTubeVideo"
-      />
-    </div>
-    <div class="row q-gutter-sm">
-      <q-toggle
-        v-model="autoMode"
-        label="Automatically transcribe the video after it is downloaded"
-        color="primary"
-      />
-    </div>
-    <div class="row q-gutter-sm"></div>
-    <div class="row q-gutter-sm">
-      <q-btn
-        label="Extract Audio"
-        color="primary"
-        @click="doExtractAudio"
-        :disable="videoFilePath == undefined"
-      />
-    </div>
-    <div class="row q-gutter-sm">
-      <q-btn
-        @click="doTranscribeAudio(selectedModelSize)"
-        label="Transcribe Audio"
-        color="primary"
-        :disable="audioFilePath == undefined"
-      ></q-btn>
-    </div>
-    <div class="row q-gutter-sm">
-      <q-select
-        class="col-5"
-        v-model="selectedModelSize"
-        :options="modelSizes"
-        label="Select Whisper Model Size"
-        outlined
-        emit-value
-        map-options
-        dense
-        :stack-label="false"
-      />
-      <div v-if="progress">{{ progress }}</div>
-    </div>
+  <div>
+    <q-card class="q-ma-sm" flat bordered>
+      <q-chip>選擇來源</q-chip>
+      <q-card-section>
+        <div class="q-gutter-sm">
+          <q-btn label="選擇影片" outline @click="selectVideoFile" />
+          <input
+            type="file"
+            ref="videoFileInput"
+            accept="video/*"
+            style="display: none"
+            @change="changeVideoFile"
+          />
+          <q-btn label="下載YT影片" outline @click="doDownloadYouTubeVideo" />
+        </div>
+        <q-toggle
+          v-model="autoMode"
+          label="當影片下載完後自動轉錄"
+          color="primary"
+        />
+      </q-card-section>
+    </q-card>
+    <q-card class="q-ma-sm" flat bordered>
+      <q-chip>
+        轉錄
+        <span class="text-caption">
+          &nbsp;*第一次轉錄或者是切換不同選項會花比較久時間下載AI模型
+        </span>
+      </q-chip>
+      <q-card-section>
+        <div class="row q-gutter-sm">
+          <q-btn
+            @click="doTranscribeAudio(selectedModelSize)"
+            label="轉錄成字幕"
+            color="primary"
+          ></q-btn>
+          <q-select
+            v-model="selectedModelSize"
+            :options="modelSizes"
+            label="Whisper Model Size"
+            outlined
+            emit-value
+            map-options
+            dense
+            style="width: 150px"
+          />
+        </div>
+      </q-card-section>
+    </q-card>
   </div>
 </template>
 
@@ -98,7 +91,9 @@ const doExtractAudio = async () => {
   if (!filePath) {
     return;
   }
-  $q.loading.show();
+  $q.loading.show({
+    message: '抽取音軌',
+  });
   try {
     audioFilePath.value = undefined;
     console.log('Extracting audio from:', filePath);
@@ -111,8 +106,6 @@ const doExtractAudio = async () => {
   $q.loading.hide();
 };
 
-const progress = ref<string | null>(null);
-
 const modelSizes = [
   { label: 'Tiny', value: 'tiny' },
   { label: 'Base', value: 'base' },
@@ -124,22 +117,25 @@ const selectedModelSize = ref<WhisperModelSize>('small');
 
 const doTranscribeAudio = async (model: WhisperModelSize) => {
   if (!audioFilePath.value) {
+    await doExtractAudio();
+  }
+  if (!audioFilePath.value) {
     $q.notify({
       type: 'negative',
-      message: 'Please extract audio',
+      message: 'Please extract audio failed',
     });
     return;
   }
-  $q.loading.show();
+  $q.loading.show({
+    message: '轉錄字幕',
+  });
   console.log(`Transcribing audio with ${model}`);
   subtitlesStore.clearSubtitles();
   try {
     const resultSegments = await transcribeAudio(
       audioFilePath.value,
       model,
-      (progressMessage) => {
-        progress.value = progressMessage;
-      }
+      () => {}
     );
     resultSegments.forEach((segment) => {
       addSubtitle({
@@ -153,10 +149,8 @@ const doTranscribeAudio = async (model: WhisperModelSize) => {
       message: 'Transcription complete',
     });
     console.log('Transcription complete');
-    progress.value = null;
   } catch (error) {
     notifyError(error);
-    progress.value = null;
   }
   $q.loading.hide();
 };
@@ -196,7 +190,9 @@ const doDownloadYouTubeVideo = async () => {
       if (!videoUrl) {
         return;
       }
-      $q.loading.show();
+      $q.loading.show({
+        message: '下載YT影片',
+      });
 
       // Mark the start time
       performance.mark('start-download');

@@ -132,10 +132,26 @@ const doTranscribeAudio = async (model: WhisperModelSize) => {
   console.log(`Transcribing audio with ${model}`);
   subtitlesStore.clearSubtitles();
   try {
+    let lastProgress: string | undefined = undefined;
     const resultSegments = await transcribeAudio(
       audioFilePath.value,
       model,
-      () => {}
+      (progress) => {
+        let message = '轉錄字幕';
+        if (lastProgress?.startsWith('Loading model:')) {
+          message = `轉錄字幕 - 下載模型 ${progress}`;
+        } else if (lastProgress?.startsWith('Transcribing audio')) {
+          message = `轉錄字幕 - ${progress}`;
+        } else {
+          lastProgress = progress;
+        }
+        if (progress.startsWith('Transcribing audio')) {
+          lastProgress = progress;
+        }
+        $q.loading.show({
+          message,
+        });
+      }
     );
     resultSegments.forEach((segment) => {
       addSubtitle({

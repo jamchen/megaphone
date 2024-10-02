@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { createObjectURL } from './utils';
-import { transcriptAudio } from './python-wrappers/transcript-audio';
+import { transcribeAudio } from './python-wrappers/transcript-audio';
 import { extractAudio } from './extract-audio';
 import path from 'path';
 import { formatSubtitlesToSRT } from './srt';
@@ -12,7 +12,7 @@ console.log(`process.env.PATH: ${process.env.PATH}`);
 
 contextBridge.exposeInMainWorld('electronAPI', {
   createObjectURL,
-  transcribeAudio: transcriptAudio,
+  transcribeAudio: transcribeAudio,
   getPathForFile: (file: File): string => {
     return webUtils.getPathForFile(file);
   },

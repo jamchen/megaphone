@@ -16,7 +16,7 @@ const extractPercentage = (input: string): number | null => {
 const transcribeScriptPath = path.join(scriptsPath, 'transcribe.py');
 console.log(`transcribeScriptPath: ${transcribeScriptPath}`);
 
-export const transcriptAudio = (
+export const transcribeAudio = (
   audioFilePath: string,
   model: WhisperModelSize,
   onProgress: (progress: string) => void
@@ -43,9 +43,10 @@ export const transcriptAudio = (
     const timestampRegex = /\[\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}\.\d{3}\]/;
 
     rl.on('line', (line) => {
-      if (line.startsWith('Progress:') || timestampRegex.test(line)) {
+      const progressPrefix = 'Progress: ';
+      if (line.startsWith(progressPrefix) || timestampRegex.test(line)) {
         console.log(`stdout: ${line}`); // Log the stdout data to the JavaScript console
-        onProgress(line);
+        onProgress(line.replace(progressPrefix, ''));
       } else {
         resultData += line;
       }

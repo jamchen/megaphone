@@ -4,8 +4,6 @@
       <q-toolbar>
         <q-icon name="campaign" size="lg" />
         <q-toolbar-title> Megaphone - {{ videoFileName }} </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
     <q-page-container>

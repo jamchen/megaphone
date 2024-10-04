@@ -26,5 +26,8 @@ export const getFFmpegExecutablePath = () => {
 };
 
 export const getPythonExecutable = () => {
+  if (os.platform() == 'win32') {
+    return path.join(getExecutableBasePath(), 'python', 'python');
+  }
   return path.join(getExecutableBasePath(), 'python', 'bin', 'python');
 };

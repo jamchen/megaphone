@@ -21,20 +21,19 @@ export const transcribeAudio = (
   model: WhisperModelSize,
   onProgress: (progress: string) => void
 ) => {
+  const executableBasePath = getExecutableBasePath();
+  const newPath = process.env.PATH + path.delimiter + executableBasePath;
   return new Promise((resolve, reject) => {
-    const script = spawn(
-      pythonExecutable,
-      [transcribeScriptPath, audioFilePath, model],
-      {
-        env: {
-          ...process.env,
-          PATH: process.env.PATH + `:${getExecutableBasePath()}`,
-        },
-      }
-    );
+    const args = [transcribeScriptPath, audioFilePath, model];
+    console.log(`${pythonExecutable} ${args.join(' ')}`);
+    const script = spawn(pythonExecutable, args, {
+      env: {
+        ...process.env,
+        PATH: newPath,
+      },
+    });
 
     let resultData = '';
-
     const rl = readline.createInterface({
       input: script.stdout,
       terminal: false,

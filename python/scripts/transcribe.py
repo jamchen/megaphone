@@ -2,6 +2,10 @@
 import whisper
 import sys
 import json
+import os.path
+
+def eprint(*args, **kwargs):
+   print(*args, file=sys.stderr, **kwargs)
 
 def transcribe(audio_path, model="base"):
     print("Progress: Loading model: " + model)
@@ -16,4 +20,9 @@ def transcribe(audio_path, model="base"):
 if __name__ == "__main__":
     audio_path = sys.argv[1]
     model = sys.argv[2]
-    transcribe(audio_path, model)
+    try:
+      transcribe(audio_path, model)
+    except Exception as e:
+      eprint("PATH: " + os.environ['PATH'])
+      eprint(f"Progress: exception: {e}")
+      raise e

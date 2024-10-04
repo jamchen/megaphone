@@ -42,6 +42,7 @@
                 dense
                 outlined
                 v-model="youTubeVideoUrl"
+                placeholder="例：https://www.youtube.com/watch?v=MQ2kVk1qUfw"
                 label="輸入YT影片網址"
               />
             </div>
@@ -51,16 +52,16 @@
                 dense
                 outlined
                 v-model="startTime"
-                placeholder="00:01:30"
-                label="請輸入開始時間"
+                placeholder="例：00:01:30"
+                label="開始時間"
               />
               <q-input
                 class="col"
                 dense
                 outlined
                 v-model="endTime"
-                placeholder="00:02:30"
-                label="請輸入結束時間"
+                placeholder="例：00:02:30"
+                label="結束時間"
               />
               <q-btn
                 class="col q-mt-sm q-ml-sm"
@@ -355,10 +356,11 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 const doDownloadYouTubeVideo = async () => {
   $q.dialog({
     title: 'Enter YouTube Video URL',
-    message: 'Enter the URL of the YouTube video to download',
+    message: '輸入要下載的YouTube影片網址',
     prompt: {
       model: '',
       type: 'text',
+      placeholder: '例如：https://www.youtube.com/watch?v=MQ2kVk1qUfw',
     },
     cancel: true,
     persistent: true,

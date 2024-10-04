@@ -75,21 +75,21 @@
                   v-close-popup
                   @click="removeSubtitlesToLeft(index)"
                 >
-                  <q-item-section>Remove Subtitles to the Left</q-item-section>
+                  <q-item-section>移除此字幕左邊所有字幕</q-item-section>
                 </q-item>
                 <q-item
                   clickable
                   v-close-popup
                   @click="removeSubtitleAt(index)"
                 >
-                  <q-item-section>Remove this Subtitle</q-item-section>
+                  <q-item-section>移除此字幕</q-item-section>
                 </q-item>
                 <q-item
                   clickable
                   v-close-popup
                   @click="removeSubtitlesToRight(index)"
                 >
-                  <q-item-section>Remove Subtitles to the Right</q-item-section>
+                  <q-item-section>移除此字幕右邊邊所有字幕</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -251,6 +251,11 @@ const loadSrtContent = (content: string) => {
 };
 
 const translateSubtitles = async () => {
+  $q.notify({
+    type: 'info',
+    message: 'Coming soon...',
+  });
+  return;
   $q.loading.show({
     message: '翻譯字幕',
   });

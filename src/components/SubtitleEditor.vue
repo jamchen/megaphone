@@ -3,7 +3,7 @@
     <q-input
       v-model="model.text"
       label="編輯字幕"
-      hint="編輯完同時按Enter + ⌘或⊞或alt可以恢復播放"
+      hint="編輯完同時按Enter + alt 或 ⌘ 可以恢復播放"
       outlined
       type="textarea"
       @keydown.space.stop

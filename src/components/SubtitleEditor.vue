@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineModel, ref } from 'vue';
+import { defineModel, onMounted, onUnmounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useProjectStore } from 'src/stores/project';
 import { QInput } from 'quasar';
@@ -32,6 +32,22 @@ const onBlur = (event: Event) => {
     editingSubtitle.value = false;
   }
 };
+
+const focusOnEditorIfNeeded = (event: KeyboardEvent) => {
+  if (event.code === 'Enter' && !event.metaKey && !event.altKey) {
+    textInput.value?.focus();
+    event.stopPropagation();
+    event.preventDefault();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', focusOnEditorIfNeeded);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', focusOnEditorIfNeeded);
+});
 </script>
 
 <style scoped></style>

@@ -4,7 +4,7 @@ export const useSubtitlesStore = defineStore('subtitles', {
   state: () => ({
     subtitles: [] as Subtitle[],
     translatedSubtitles: [] as Subtitle[],
-    selectedSubtitle: null as Subtitle | null,
+    selectedSubtitle: null as Subtitle | undefined | null,
   }),
 
   getters: {},

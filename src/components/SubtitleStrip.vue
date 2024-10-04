@@ -49,7 +49,13 @@
       </div>
     </div>
     <div class="col">
-      <q-scroll-area class="full-width q-pt-sm" style="height: 202px">
+      <q-scroll-area
+        class="full-width q-pt-sm"
+        style="height: 202px"
+        tabindex="0"
+        @keydown.left.stop="selectLeft"
+        @keydown.right.stop="selectRight"
+      >
         <div class="row no-wrap">
           <q-card
             v-for="(subtitle, index) in subtitles"
@@ -144,6 +150,31 @@ watch(videoCurrentTime, async (currentTime) => {
     }
   }
 });
+
+const selectCardAtIndex = (index: number) => {
+  selectedSubtitle.value = props.subtitles[index];
+  revealCardAtIndex(index);
+};
+
+const selectLeft = () => {
+  let selectedIndex = props.subtitles.findIndex(
+    (subtitle) => subtitle == selectedSubtitle.value
+  );
+  selectedIndex = selectedIndex - 1;
+  if (selectedIndex >= 0) {
+    selectCardAtIndex(selectedIndex);
+  }
+};
+
+const selectRight = () => {
+  let selectedIndex = props.subtitles.findIndex(
+    (subtitle) => subtitle == selectedSubtitle.value
+  );
+  selectedIndex = selectedIndex + 1;
+  if (selectedIndex < props.subtitles.length) {
+    selectCardAtIndex(selectedIndex);
+  }
+};
 
 function revealCardAtIndex(index: number) {
   const cardForCurrentTime = subtitleCards.value?.[index];

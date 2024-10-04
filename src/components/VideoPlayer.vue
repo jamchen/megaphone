@@ -114,8 +114,9 @@ const updateSelectedSubtitle = () => {
           currentTime >= subtitle.start && currentTime < subtitle.end
       );
     if (
-      subtitlesStore.selectedSubtitle == subtitleForCurrentTime ||
-      subtitlesStore.selectedSubtitle == translatedSubtitleForCurrentTime
+      subtitlesStore.selectedSubtitle &&
+      (subtitlesStore.selectedSubtitle == subtitleForCurrentTime ||
+        subtitlesStore.selectedSubtitle == translatedSubtitleForCurrentTime)
     ) {
       // Do nothing if the selected subtitle is already the correct one
       return;
@@ -133,6 +134,8 @@ const updateSelectedSubtitle = () => {
       translatedSubtitleForCurrentTime
     ) {
       subtitlesStore.selectedSubtitle = translatedSubtitleForCurrentTime;
+    } else {
+      subtitlesStore.selectedSubtitle = subtitleForCurrentTime;
     }
   }
 };

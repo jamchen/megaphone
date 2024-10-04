@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import path from 'path';
-import { getFFmpegExecutablePath, getYtDlpExecutablePath } from './path-utils';
+import { getExecutableBasePath, getYtDlpExecutablePath } from './path-utils';
 import { app } from 'electron';
 
 /**
@@ -32,7 +32,7 @@ export function downloadYouTubeVideo(
       // '--print',
       // 'filename',
       '--ffmpeg-location',
-      getFFmpegExecutablePath(),
+      getExecutableBasePath(),
       '-S',
       '+codec:avc:m4a',
       ...downloadSectionsArgs,

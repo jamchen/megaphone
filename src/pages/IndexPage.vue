@@ -3,16 +3,23 @@
     <div class="row">
       <div class="col-8">
         <VideoPlayer v-if="videoUrl" class="full-width" :videoUrl="videoUrl" />
+        <div v-else class="flex flex-center full-height">
+          <q-banner class="vertical-middle" rounded>
+            請從右方選擇影片
+          </q-banner>
+        </div>
       </div>
       <div class="col">
         <ControlPanel />
       </div>
     </div>
+    <q-separator spaced inset />
     <SubtitleStrip :subtitles="subtitles" />
     <SubtitleStrip
       v-if="translatedSubtitles && translatedSubtitles.length > 0"
       :subtitles="translatedSubtitles"
     />
+    <q-separator spaced />
     <div class="row" v-if="selectedSubtitle">
       <SubtitleEditor class="col" v-model="selectedSubtitle" />
     </div>

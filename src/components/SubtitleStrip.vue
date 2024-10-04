@@ -49,53 +49,62 @@
       </div>
     </div>
     <div class="col">
-      <q-scroll-area class="full-width q-pt-sm" style="height: 202px">
-        <div class="row no-wrap">
-          <q-card
-            v-for="(subtitle, index) in subtitles"
-            :key="index"
-            class="q-pa-sx q-ml-sm q-mt-sx"
-            style="width: 200px; height: 187px"
-            :class="{ 'selected-border': subtitle === selectedSubtitle }"
-            :bordered="subtitle === selectedSubtitle"
-            @click="selectSubtitle(subtitle)"
-            ref="subtitleCards"
-            flat
-          >
-            <q-card-section>
-              {{ subtitle.text }}
-            </q-card-section>
-            <q-card-actions class="q-pl-md absolute-bottom">
-              {{ formatTime(subtitle.start) }} - {{ formatTime(subtitle.end) }}
-            </q-card-actions>
-            <q-menu context-menu>
-              <q-list>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitlesToLeft(index)"
-                >
-                  <q-item-section>移除此字幕左邊所有字幕</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitleAt(index)"
-                >
-                  <q-item-section>移除此字幕</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitlesToRight(index)"
-                >
-                  <q-item-section>移除此字幕右邊邊所有字幕</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-card>
-        </div>
-      </q-scroll-area>
+      <q-card flat bordered>
+        <q-scroll-area
+          class="full-width q-pt-sm rounded-borders q-rounded-borders"
+          style="height: 202px"
+        >
+          <div class="row no-wrap" v-if="subtitles.length > 0">
+            <q-card
+              v-for="(subtitle, index) in subtitles"
+              :key="index"
+              class="q-pa-sx q-ml-sm q-mt-sx"
+              style="width: 200px; height: 187px"
+              :class="{ 'selected-border': subtitle === selectedSubtitle }"
+              bordered
+              @click="selectSubtitle(subtitle)"
+              ref="subtitleCards"
+              flat
+            >
+              <q-card-section>
+                {{ subtitle.text }}
+              </q-card-section>
+              <q-card-actions class="q-pl-md absolute-bottom">
+                {{ formatTime(subtitle.start) }} -
+                {{ formatTime(subtitle.end) }}
+              </q-card-actions>
+              <q-menu context-menu>
+                <q-list>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="removeSubtitlesToLeft(index)"
+                  >
+                    <q-item-section>移除此字幕左邊所有字幕</q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="removeSubtitleAt(index)"
+                  >
+                    <q-item-section>移除此字幕</q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="removeSubtitlesToRight(index)"
+                  >
+                    <q-item-section>移除此字幕右邊邊所有字幕</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-card>
+          </div>
+          <div class="row flex-center full-height" v-else>
+            <q-banner class="vertical-middle" rounded> 還沒有字幕 </q-banner>
+          </div>
+        </q-scroll-area>
+      </q-card>
     </div>
   </div>
 </template>

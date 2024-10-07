@@ -74,7 +74,7 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-toggle
-          v-model="autoMode"
+          v-model="autoTranscribe"
           label="當影片下載完後自動轉錄"
           color="primary"
         />
@@ -132,8 +132,13 @@ import { useSubtitlesStore } from 'src/stores/subtitles';
 import { computed, ref, toRaw } from 'vue';
 
 const projectStore = useProjectStore();
-const { videoFilePath, audioFilePath, youTubeVideoUrl, videoSourceTab } =
-  storeToRefs(projectStore);
+const {
+  videoFilePath,
+  audioFilePath,
+  youTubeVideoUrl,
+  videoSourceTab,
+  autoTranscribe,
+} = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
@@ -150,7 +155,6 @@ const {
   showItemInFolder,
 } = window.electronAPI;
 
-const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
 const startTime = ref<string | undefined>();
 const endTime = ref<string | undefined>();
@@ -315,7 +319,7 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
     // Mark the end time for download
     performance.mark('end-download');
 
-    if (autoMode.value) {
+    if (autoTranscribe.value) {
       // Mark the start time for audio extraction
       performance.mark('start-extract-audio');
 
@@ -339,7 +343,7 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
       performance.getEntriesByName('download-duration')[0].duration;
     console.log(`Download duration: ${formatDuration(downloadDuration)}`);
 
-    if (autoMode.value) {
+    if (autoTranscribe.value) {
       // Measure the duration for audio extraction
       performance.measure(
         'extract-audio-duration',

@@ -300,7 +300,12 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
     const ytVideoFilePath = await downloadYouTubeVideo(
       videoUrl,
       startTime,
-      endTime
+      endTime,
+      (progress) => {
+        $q.loading.show({
+          message: `下載YT影片: ${(progress.value * 100).toFixed(0)}%`,
+        });
+      }
     );
     console.log('Downloaded YouTube video:', ytVideoFilePath);
     videoFilePath.value = ytVideoFilePath;

@@ -62,7 +62,12 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 ipcMain.handle(
   'download-youtbue-video',
   async (event, { url, startTime, endTime }) => {
-    return await downloadYouTubeVideo(url, startTime, endTime);
+    return await downloadYouTubeVideo(url, startTime, endTime, (progress) => {
+      event.sender.send('download-youtbue-video-progress', {
+        url,
+        value: progress,
+      });
+    });
   }
 );
 

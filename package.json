@@ -2,7 +2,7 @@
   "name": "megaphone",
   "version": "0.0.1",
   "description": "A toolkit that assists in creating subtitles",
-  "productName": "Megaphone",
+  "productName": "民眾大聲公",
   "author": "MacSmith",
   "private": true,
   "scripts": {

@@ -108,6 +108,19 @@
         </div>
       </q-card-section>
     </q-card>
+    <q-card class="q-ma-sm" flat bordered>
+      <q-chip> 合成 </q-chip>
+      <q-separator />
+      <q-card-section>
+        <div class="row q-gutter-sm">
+          <q-btn
+            @click="doOverlaySubtitles"
+            label="將字幕合成到影片"
+            color="primary"
+          ></q-btn>
+        </div>
+      </q-card-section>
+    </q-card>
   </div>
 </template>
 
@@ -116,7 +129,7 @@ import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useProjectStore } from 'src/stores/project';
 import { useSubtitlesStore } from 'src/stores/subtitles';
-import { computed, ref } from 'vue';
+import { computed, ref, toRaw } from 'vue';
 
 const projectStore = useProjectStore();
 const { videoFilePath, audioFilePath, youTubeVideoUrl, videoSourceTab } =
@@ -124,8 +137,18 @@ const { videoFilePath, audioFilePath, youTubeVideoUrl, videoSourceTab } =
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
-const { downloadYouTubeVideo, getPathForFile, extractAudio, transcribeAudio } =
-  window.electronAPI;
+const {
+  downloadYouTubeVideo,
+  getPathForFile,
+  extractAudio,
+  transcribeAudio,
+  basename,
+  getAppPath,
+  exportSubtitles,
+  showSaveDialog,
+  overlaySubtitles,
+  showItemInFolder,
+} = window.electronAPI;
 
 const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
@@ -394,6 +417,67 @@ const downloadYouTubeVideoSegment = async () => {
     startTime.value,
     endTime.value
   );
+  $q.loading.hide();
+};
+
+// TODO: DRY this function
+function getFileExtension(filePath: string): string {
+  const lastDotIndex = filePath.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    return ''; // No extension found
+  }
+  return filePath.substring(lastDotIndex);
+}
+
+const doOverlaySubtitles = async () => {
+  $q.loading.show({
+    message: '合成字幕',
+  });
+  try {
+    if (!videoFilePath.value) {
+      throw new Error('Please select a video file first');
+    }
+    const videoBaseName =
+      basename(videoFilePath.value, getFileExtension(videoFilePath.value)) ||
+      'output';
+    const defaultOutputPath = `${videoBaseName}-subtitled.mp4`;
+
+    const { filePath: outputFilePath } = await showSaveDialog({
+      title: 'Save Video with Subtitles',
+      defaultPath: defaultOutputPath,
+    });
+
+    if (outputFilePath) {
+      console.log('Saving video to:', outputFilePath);
+
+      // Save subtitles to a temporary file
+      const tmpDir = await getAppPath('temp');
+      console.log('Temporary directory:', tmpDir);
+      const tempSubtitlesPath = `${tmpDir}/${videoBaseName}_subtitles.srt`;
+      await exportSubtitles(
+        tempSubtitlesPath,
+        subtitlesStore.subtitles.map(toRaw)
+      );
+      console.log('Subtitles saved to:', tempSubtitlesPath);
+
+      // Call the function to overlay subtitles and save the video
+      await overlaySubtitles({
+        inputVideo: videoFilePath.value,
+        subtitleFile: tempSubtitlesPath,
+        outputVideo: outputFilePath,
+      });
+
+      showItemInFolder(outputFilePath);
+      $q.notify({
+        type: 'positive',
+        message: 'Video saved successfully',
+      });
+    } else {
+      console.log('Save dialog was canceled');
+    }
+  } catch (error) {
+    notifyError(error);
+  }
   $q.loading.hide();
 };
 </script>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 import { createMenu } from './menu';
@@ -65,6 +65,14 @@ ipcMain.handle(
     return await downloadYouTubeVideo(url, startTime, endTime);
   }
 );
+
+ipcMain.handle('get-app-path', async (event, name) => {
+  return app.getPath(name);
+});
+
+ipcMain.handle('show-item-in-folder', async (event, fullPath) => {
+  return shell.showItemInFolder(fullPath);
+});
 
 Menu.setApplicationMenu(createMenu());
 

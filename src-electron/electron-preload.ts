@@ -7,6 +7,7 @@ import { formatSubtitlesToSRT } from './srt';
 import fs from 'fs';
 import { translate as googleTranslate } from '@vitalets/google-translate-api';
 import { translate as pythonTranslate } from './python-wrappers/translate';
+import { overlaySubtitles } from './overlay-subtitles';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -47,5 +48,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
       startTime: startTime,
       endTime: endTime,
     });
+  },
+  overlaySubtitles: overlaySubtitles,
+  getAppPath: async (name: string) => {
+    return await ipcRenderer.invoke('get-app-path', name);
+  },
+  showItemInFolder: (fullPath: string) => {
+    return ipcRenderer.invoke('show-item-in-folder', fullPath);
   },
 });

@@ -9,6 +9,7 @@ export const useProjectStore = defineStore('project', {
     editingSubtitle: false as boolean,
     videoSourceTab: 'standard',
     autoTranscribe: true as boolean,
+    autoOverlaySubtitles: true as boolean,
   }),
 
   persist: {

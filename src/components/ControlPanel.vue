@@ -91,7 +91,9 @@
       <q-card-section>
         <div class="row q-gutter-sm">
           <q-btn
-            @click="doTranscribeAudio(selectedModelSize)"
+            @click="
+              doTranscribeAudioAndMaybeOverlaySubtitles(selectedModelSize)
+            "
             label="轉錄成字幕"
             color="primary"
           ></q-btn>
@@ -106,6 +108,11 @@
             style="width: 150px"
           />
         </div>
+        <q-toggle
+          v-model="autoOverlaySubtitles"
+          label="當轉錄完後自動合成字幕"
+          color="primary"
+        />
       </q-card-section>
     </q-card>
     <q-card class="q-ma-sm" flat bordered>
@@ -138,6 +145,7 @@ const {
   youTubeVideoUrl,
   videoSourceTab,
   autoTranscribe,
+  autoOverlaySubtitles,
 } = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
@@ -214,6 +222,15 @@ const modelSizes = [
   { label: 'Large', value: 'large' },
 ];
 const selectedModelSize = ref<WhisperModelSize>('small');
+
+const doTranscribeAudioAndMaybeOverlaySubtitles = async (
+  model: WhisperModelSize
+) => {
+  await doTranscribeAudio(model);
+  if (autoOverlaySubtitles.value) {
+    await doOverlaySubtitles();
+  }
+};
 
 const doTranscribeAudio = async (model: WhisperModelSize) => {
   if (!audioFilePath.value) {
@@ -335,6 +352,12 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 
       // Mark the end time for audio transcription
       performance.mark('end-transcribe-audio');
+
+      if (autoOverlaySubtitles.value) {
+        performance.mark('start-overlay-subtitles');
+        await doOverlaySubtitles();
+        performance.mark('end-overlay-subtitles');
+      }
     }
 
     // Measure the duration for download
@@ -372,9 +395,30 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
         )}`
       );
 
+      let overlaySubtitlesDuration = 0;
+      if (autoOverlaySubtitles.value) {
+        // Measure the duration for overlaying subtitles
+        performance.measure(
+          'overlay-subtitles-duration',
+          'start-overlay-subtitles',
+          'end-overlay-subtitles'
+        );
+        overlaySubtitlesDuration = performance.getEntriesByName(
+          'overlay-subtitles-duration'
+        )[0].duration;
+        console.log(
+          `Subtitles overlay duration: ${formatDuration(
+            overlaySubtitlesDuration
+          )}`
+        );
+      }
+
       // Calculate and log the total duration
       const totalDuration =
-        downloadDuration + extractAudioDuration + transcribeAudioDuration;
+        downloadDuration +
+        extractAudioDuration +
+        transcribeAudioDuration +
+        overlaySubtitlesDuration;
       console.log(`Total duration: ${formatDuration(totalDuration)}`);
     }
 

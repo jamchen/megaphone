@@ -506,7 +506,7 @@ const doOverlaySubtitles = async () => {
       // Save subtitles to a temporary file
       const tmpDir = await getAppPath('temp');
       console.log('Temporary directory:', tmpDir);
-      const tempSubtitlesPath = `${tmpDir}/${videoBaseName}_subtitles.srt`;
+      const tempSubtitlesPath = `${tmpDir}${videoBaseName}_subtitles.srt`;
       await exportSubtitles(
         tempSubtitlesPath,
         subtitlesStore.subtitles.map(toRaw)

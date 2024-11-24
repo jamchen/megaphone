@@ -58,6 +58,21 @@ interface SrcTranslit {
   src_translit: string;
 }
 
+interface OverlaySubtitlesParams {
+  inputVideo: string;
+  subtitleFile: string;
+  outputVideo: string;
+}
+
+interface YouTubeDownloadProgress {
+  url: string;
+  value: number;
+}
+
+type YouTubeDownloadProgressCallback = (
+  progress: YouTubeDownloadProgress
+) => void;
+
 // Define the ElectronAPI interface
 interface ElectronAPI {
   createObjectURL: (filePath: string) => string;
@@ -86,8 +101,12 @@ interface ElectronAPI {
   downloadYouTubeVideo: (
     url: string,
     startTime?: string,
-    endTime?: string
+    endTime?: string,
+    progressCallback?: YouTubeDownloadProgressCallback
   ) => Promise<string>;
+  overlaySubtitles: (params: OverlaySubtitlesParams) => Promise<void>;
+  getAppPath: (name: string) => Promise<string>;
+  showItemInFolder: (fullPath: string) => void;
 }
 
 interface Window {

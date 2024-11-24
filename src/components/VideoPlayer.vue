@@ -171,6 +171,6 @@ onUnmounted(() => {
 
 <style scoped>
 #video-player {
-  max-height: 420px;
+  max-height: 470px;
 }
 </style>

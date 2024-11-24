@@ -3,7 +3,11 @@
     <q-header elevated>
       <q-toolbar>
         <q-icon name="campaign" size="lg" />
-        <q-toolbar-title> Megaphone - {{ videoFileName }} </q-toolbar-title>
+        <q-toolbar-title v-if="videoFileName">
+          {{ videoFileName }}
+        </q-toolbar-title>
+        <q-toolbar-title v-else>民眾大聲公</q-toolbar-title>
+        <div>Powered by 小草</div>
       </q-toolbar>
     </q-header>
     <q-page-container>

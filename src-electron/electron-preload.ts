@@ -1,4 +1,9 @@
-import { contextBridge, ipcRenderer, webUtils } from 'electron';
+import {
+  contextBridge,
+  ipcRenderer,
+  IpcRendererEvent,
+  webUtils,
+} from 'electron';
 import { createObjectURL } from './utils';
 import { transcribeAudio } from './python-wrappers/transcript-audio';
 import { extractAudio } from './extract-audio';
@@ -7,6 +12,7 @@ import { formatSubtitlesToSRT } from './srt';
 import fs from 'fs';
 import { translate as googleTranslate } from '@vitalets/google-translate-api';
 import { translate as pythonTranslate } from './python-wrappers/translate';
+import { overlaySubtitles } from './overlay-subtitles';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -40,12 +46,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
   downloadYouTubeVideo: async (
     url: string,
     startTime: string | undefined,
-    endTime: string | undefined
+    endTime: string | undefined,
+    progressCallback: YouTubeDownloadProgressCallback | undefined
   ) => {
-    return await ipcRenderer.invoke('download-youtbue-video', {
+    const callbackWrapper = (
+      _: IpcRendererEvent,
+      progress: YouTubeDownloadProgress
+    ) => {
+      if (progressCallback) {
+        progressCallback(progress);
+      }
+    };
+    ipcRenderer.on('download-youtbue-video-progress', callbackWrapper);
+    const result = await ipcRenderer.invoke('download-youtbue-video', {
       url,
       startTime: startTime,
       endTime: endTime,
     });
+    ipcRenderer.off('download-youtbue-video-progress', callbackWrapper);
+    return result;
+  },
+  overlaySubtitles: overlaySubtitles,
+  getAppPath: async (name: string) => {
+    return await ipcRenderer.invoke('get-app-path', name);
+  },
+  showItemInFolder: (fullPath: string) => {
+    return ipcRenderer.invoke('show-item-in-folder', fullPath);
   },
 });

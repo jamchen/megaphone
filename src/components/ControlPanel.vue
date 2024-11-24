@@ -42,6 +42,7 @@
                 dense
                 outlined
                 v-model="youTubeVideoUrl"
+                placeholder="例：https://www.youtube.com/watch?v=MQ2kVk1qUfw"
                 label="輸入YT影片網址"
               />
             </div>
@@ -51,16 +52,16 @@
                 dense
                 outlined
                 v-model="startTime"
-                placeholder="00:01:30"
-                label="請輸入開始時間"
+                placeholder="例：00:01:30"
+                label="開始時間"
               />
               <q-input
                 class="col"
                 dense
                 outlined
                 v-model="endTime"
-                placeholder="00:02:30"
-                label="請輸入結束時間"
+                placeholder="例：00:02:30"
+                label="結束時間"
               />
               <q-btn
                 class="col q-mt-sm q-ml-sm"
@@ -73,7 +74,7 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-toggle
-          v-model="autoMode"
+          v-model="autoTranscribe"
           label="當影片下載完後自動轉錄"
           color="primary"
         />
@@ -90,7 +91,9 @@
       <q-card-section>
         <div class="row q-gutter-sm">
           <q-btn
-            @click="doTranscribeAudio(selectedModelSize)"
+            @click="
+              doTranscribeAudioAndMaybeOverlaySubtitles(selectedModelSize)
+            "
             label="轉錄成字幕"
             color="primary"
           ></q-btn>
@@ -105,6 +108,24 @@
             style="width: 150px"
           />
         </div>
+        <q-toggle
+          v-model="autoOverlaySubtitles"
+          label="當轉錄完後自動合成字幕"
+          color="primary"
+        />
+      </q-card-section>
+    </q-card>
+    <q-card class="q-ma-sm" flat bordered>
+      <q-chip> 合成 </q-chip>
+      <q-separator />
+      <q-card-section>
+        <div class="row q-gutter-sm">
+          <q-btn
+            @click="doOverlaySubtitles"
+            label="將字幕合成到影片"
+            color="primary"
+          ></q-btn>
+        </div>
       </q-card-section>
     </q-card>
   </div>
@@ -115,18 +136,33 @@ import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useProjectStore } from 'src/stores/project';
 import { useSubtitlesStore } from 'src/stores/subtitles';
-import { computed, ref } from 'vue';
+import { computed, ref, toRaw } from 'vue';
 
 const projectStore = useProjectStore();
-const { videoFilePath, audioFilePath, youTubeVideoUrl, videoSourceTab } =
-  storeToRefs(projectStore);
+const {
+  videoFilePath,
+  audioFilePath,
+  youTubeVideoUrl,
+  videoSourceTab,
+  autoTranscribe,
+  autoOverlaySubtitles,
+} = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
 
-const { downloadYouTubeVideo, getPathForFile, extractAudio, transcribeAudio } =
-  window.electronAPI;
+const {
+  downloadYouTubeVideo,
+  getPathForFile,
+  extractAudio,
+  transcribeAudio,
+  basename,
+  getAppPath,
+  exportSubtitles,
+  showSaveDialog,
+  overlaySubtitles,
+  showItemInFolder,
+} = window.electronAPI;
 
-const autoMode = ref(true);
 const videoFileInput = ref<HTMLInputElement | null>(null);
 const startTime = ref<string | undefined>();
 const endTime = ref<string | undefined>();
@@ -186,6 +222,15 @@ const modelSizes = [
   { label: 'Large', value: 'large' },
 ];
 const selectedModelSize = ref<WhisperModelSize>('small');
+
+const doTranscribeAudioAndMaybeOverlaySubtitles = async (
+  model: WhisperModelSize
+) => {
+  await doTranscribeAudio(model);
+  if (autoOverlaySubtitles.value) {
+    await doOverlaySubtitles();
+  }
+};
 
 const doTranscribeAudio = async (model: WhisperModelSize) => {
   if (!audioFilePath.value) {
@@ -276,7 +321,12 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
     const ytVideoFilePath = await downloadYouTubeVideo(
       videoUrl,
       startTime,
-      endTime
+      endTime,
+      (progress) => {
+        $q.loading.show({
+          message: `下載YT影片: ${(progress.value * 100).toFixed(0)}%`,
+        });
+      }
     );
     console.log('Downloaded YouTube video:', ytVideoFilePath);
     videoFilePath.value = ytVideoFilePath;
@@ -286,7 +336,7 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
     // Mark the end time for download
     performance.mark('end-download');
 
-    if (autoMode.value) {
+    if (autoTranscribe.value) {
       // Mark the start time for audio extraction
       performance.mark('start-extract-audio');
 
@@ -302,6 +352,12 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 
       // Mark the end time for audio transcription
       performance.mark('end-transcribe-audio');
+
+      if (autoOverlaySubtitles.value) {
+        performance.mark('start-overlay-subtitles');
+        await doOverlaySubtitles();
+        performance.mark('end-overlay-subtitles');
+      }
     }
 
     // Measure the duration for download
@@ -310,7 +366,7 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
       performance.getEntriesByName('download-duration')[0].duration;
     console.log(`Download duration: ${formatDuration(downloadDuration)}`);
 
-    if (autoMode.value) {
+    if (autoTranscribe.value) {
       // Measure the duration for audio extraction
       performance.measure(
         'extract-audio-duration',
@@ -339,9 +395,30 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
         )}`
       );
 
+      let overlaySubtitlesDuration = 0;
+      if (autoOverlaySubtitles.value) {
+        // Measure the duration for overlaying subtitles
+        performance.measure(
+          'overlay-subtitles-duration',
+          'start-overlay-subtitles',
+          'end-overlay-subtitles'
+        );
+        overlaySubtitlesDuration = performance.getEntriesByName(
+          'overlay-subtitles-duration'
+        )[0].duration;
+        console.log(
+          `Subtitles overlay duration: ${formatDuration(
+            overlaySubtitlesDuration
+          )}`
+        );
+      }
+
       // Calculate and log the total duration
       const totalDuration =
-        downloadDuration + extractAudioDuration + transcribeAudioDuration;
+        downloadDuration +
+        extractAudioDuration +
+        transcribeAudioDuration +
+        overlaySubtitlesDuration;
       console.log(`Total duration: ${formatDuration(totalDuration)}`);
     }
 
@@ -355,10 +432,11 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 const doDownloadYouTubeVideo = async () => {
   $q.dialog({
     title: 'Enter YouTube Video URL',
-    message: 'Enter the URL of the YouTube video to download',
+    message: '輸入要下載的YouTube影片網址',
     prompt: {
       model: '',
       type: 'text',
+      placeholder: '例如：https://www.youtube.com/watch?v=MQ2kVk1qUfw',
     },
     cancel: true,
     persistent: true,
@@ -392,6 +470,67 @@ const downloadYouTubeVideoSegment = async () => {
     startTime.value,
     endTime.value
   );
+  $q.loading.hide();
+};
+
+// TODO: DRY this function
+function getFileExtension(filePath: string): string {
+  const lastDotIndex = filePath.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    return ''; // No extension found
+  }
+  return filePath.substring(lastDotIndex);
+}
+
+const doOverlaySubtitles = async () => {
+  $q.loading.show({
+    message: '合成字幕',
+  });
+  try {
+    if (!videoFilePath.value) {
+      throw new Error('Please select a video file first');
+    }
+    const videoBaseName =
+      basename(videoFilePath.value, getFileExtension(videoFilePath.value)) ||
+      'output';
+    const defaultOutputPath = `${videoBaseName}-subtitled.mp4`;
+
+    const { filePath: outputFilePath } = await showSaveDialog({
+      title: 'Save Video with Subtitles',
+      defaultPath: defaultOutputPath,
+    });
+
+    if (outputFilePath) {
+      console.log('Saving video to:', outputFilePath);
+
+      // Save subtitles to a temporary file
+      const tmpDir = await getAppPath('temp');
+      console.log('Temporary directory:', tmpDir);
+      const tempSubtitlesPath = `${tmpDir}${videoBaseName}_subtitles.srt`;
+      await exportSubtitles(
+        tempSubtitlesPath,
+        subtitlesStore.subtitles.map(toRaw)
+      );
+      console.log('Subtitles saved to:', tempSubtitlesPath);
+
+      // Call the function to overlay subtitles and save the video
+      await overlaySubtitles({
+        inputVideo: videoFilePath.value,
+        subtitleFile: tempSubtitlesPath,
+        outputVideo: outputFilePath,
+      });
+
+      showItemInFolder(outputFilePath);
+      $q.notify({
+        type: 'positive',
+        message: 'Video saved successfully',
+      });
+    } else {
+      console.log('Save dialog was canceled');
+    }
+  } catch (error) {
+    notifyError(error);
+  }
   $q.loading.hide();
 };
 </script>

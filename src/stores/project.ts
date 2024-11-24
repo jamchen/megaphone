@@ -8,14 +8,11 @@ export const useProjectStore = defineStore('project', {
     videoCurrentTime: 0 as number,
     editingSubtitle: false as boolean,
     videoSourceTab: 'standard',
+    autoTranscribe: true as boolean,
+    autoOverlaySubtitles: true as boolean,
   }),
 
   persist: {
-    pick: [
-      'videoFilePath',
-      'audioFilePath',
-      'youTubeVideoUrl',
-      'videoSourceTab',
-    ],
+    omit: ['videoCurrentTime', 'editingSubtitle'],
   },
 });

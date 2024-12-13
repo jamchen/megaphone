@@ -49,63 +49,13 @@
       </div>
     </div>
     <div class="col">
-      <q-scroll-area
-        class="full-width q-pt-sm"
-        style="height: 202px"
-        tabindex="0"
-        @keydown.left.stop="selectLeft"
-        @keydown.right.stop="selectRight"
-      >
-        <div class="row no-wrap">
-          <q-card
-            v-for="(subtitle, index) in subtitles"
-            :key="index"
-            class="q-pa-sx q-ml-sm q-mt-sx"
-            style="width: 200px; height: 187px"
-            :class="{ 'selected-border': subtitle === selectedSubtitle }"
-            :bordered="subtitle === selectedSubtitle"
-            @click="selectSubtitle(subtitle)"
-            ref="subtitleCards"
-            flat
-          >
-            <q-card-section>
-              {{ subtitle.text }}
-            </q-card-section>
-            <q-card-actions class="q-pl-md absolute-bottom">
-              {{ formatTime(subtitle.start) }} - {{ formatTime(subtitle.end) }}
-            </q-card-actions>
-            <q-menu context-menu>
-              <q-list>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitlesToLeft(index)"
-                >
-                  <q-item-section>Remove Subtitles to the Left</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitleAt(index)"
-                >
-                  <q-item-section>Remove this Subtitle</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="removeSubtitlesToRight(index)"
-                >
-                  <q-item-section>Remove Subtitles to the Right</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-card>
-        </div>
-      </q-scroll-area>
       <q-card flat bordered>
         <q-scroll-area
           class="full-width q-pt-sm rounded-borders q-rounded-borders"
           style="height: 202px"
+          tabindex="0"
+          @keydown.left.stop="selectLeft"
+          @keydown.right.stop="selectRight"
         >
           <div class="row no-wrap" v-if="subtitles.length > 0">
             <q-card

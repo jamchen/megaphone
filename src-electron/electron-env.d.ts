@@ -62,6 +62,7 @@ interface OverlaySubtitlesParams {
   inputVideo: string;
   subtitleFile: string;
   outputVideo: string;
+  forceStyle?: string;
 }
 
 interface YouTubeDownloadProgress {

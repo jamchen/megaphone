@@ -560,6 +560,8 @@ const doOverlaySubtitles = async () => {
         inputVideo: videoFilePath.value,
         subtitleFile: tempSubtitlesPath,
         outputVideo: outputFilePath,
+        forceStyle:
+          'BorderStyle=4,BackColour=&H80000000,Outline=0,Shadow=0,FontSize=24',
       });
 
       showItemInFolder(outputFilePath);

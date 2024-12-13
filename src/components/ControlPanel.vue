@@ -167,6 +167,8 @@ const {
   showSaveDialog,
   overlaySubtitles,
   showItemInFolder,
+  fileExists,
+  generateASS,
 } = window.electronAPI;
 
 const videoFileInput = ref<HTMLInputElement | null>(null);
@@ -323,7 +325,6 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
   try {
     // Mark the start time
     performance.mark('start-download');
-
     console.log('Downloading YouTube video:', videoUrl);
     const ytVideoFilePath = await downloadYouTubeVideo(
       videoUrl,
@@ -343,6 +344,18 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 
     // Mark the end time for download
     performance.mark('end-download');
+
+    if (videoFilePath.value && overlayLiveChat && startTime && endTime) {
+      try {
+        videoFilePath.value = await overlayLiveChatToVideo(
+          videoFilePath.value,
+          startTime,
+          endTime
+        );
+      } catch (e) {
+        notifyError(e);
+      }
+    }
 
     if (autoTranscribe.value) {
       // Mark the start time for audio extraction
@@ -481,6 +494,26 @@ const downloadYouTubeVideoSegment = async () => {
   );
   $q.loading.hide();
 };
+
+async function overlayLiveChatToVideo(
+  videoFilePath: string,
+  startTime: string,
+  endTime: string
+) {
+  const liveChatFilePath = videoFilePath.replace('.mp4', '.live_chat.json');
+  const liveChatAss = videoFilePath.replace('.mp4', '.ass');
+  const liveChatFileExists = await fileExists(liveChatFilePath);
+  console.log('Live chat file exists:', liveChatFileExists, liveChatFilePath);
+  await generateASS(liveChatFilePath, liveChatAss, startTime, endTime);
+
+  const liveChatVideoPath = videoFilePath.replace('.mp4', '.live_chat.mp4');
+  await overlaySubtitles({
+    inputVideo: videoFilePath,
+    subtitleFile: liveChatAss,
+    outputVideo: liveChatVideoPath,
+  });
+  return liveChatVideoPath;
+}
 
 // TODO: DRY this function
 function getFileExtension(filePath: string): string {

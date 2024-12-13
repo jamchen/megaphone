@@ -108,6 +108,13 @@ interface ElectronAPI {
   overlaySubtitles: (params: OverlaySubtitlesParams) => Promise<void>;
   getAppPath: (name: string) => Promise<string>;
   showItemInFolder: (fullPath: string) => void;
+  fileExists: (filePath: string) => Promise<boolean>;
+  generateASS: (
+    liveChatFile: string,
+    outputAssFile: string,
+    startTime: string,
+    endTime: string
+  ) => Promise<void>;
 }
 
 interface Window {

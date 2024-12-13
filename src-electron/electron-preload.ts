@@ -13,6 +13,7 @@ import fs from 'fs';
 import { translate as googleTranslate } from '@vitalets/google-translate-api';
 import { translate as pythonTranslate } from './python-wrappers/translate';
 import { overlaySubtitles } from './overlay-subtitles';
+import { generateASS } from './python-wrappers/ass';
 
 console.log(`process.env.PATH: ${process.env.PATH}`);
 
@@ -75,4 +76,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showItemInFolder: (fullPath: string) => {
     return ipcRenderer.invoke('show-item-in-folder', fullPath);
   },
+  fileExists: async (filePath: string) => {
+    return await ipcRenderer.invoke('file-exists', filePath);
+  },
+  generateASS: generateASS,
 });

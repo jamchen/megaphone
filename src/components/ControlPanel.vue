@@ -347,6 +347,9 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 
     if (videoFilePath.value && overlayLiveChat && startTime && endTime) {
       try {
+        $q.loading.show({
+          message: '合成直播聊天',
+        });
         videoFilePath.value = await overlayLiveChatToVideo(
           videoFilePath.value,
           startTime,

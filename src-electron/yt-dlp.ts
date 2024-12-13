@@ -13,6 +13,7 @@ export function downloadYouTubeVideo(
   url: string,
   startTime: string | undefined = undefined,
   endTime: string | undefined = undefined,
+  downloadLiveChat: boolean = false,
   downloadProgressCallback: DownloadProgressCallback | undefined = undefined
 ): Promise<string> {
   return new Promise(async (resolve, reject) => {
@@ -28,6 +29,16 @@ export function downloadYouTubeVideo(
       ];
       outputFormat = `%(title)s-%(id)s-${startTime}-${endTime}.%(ext)s`;
     }
+    let downloadLiveChatArgs: string[] = [];
+    if (downloadLiveChat) {
+      downloadLiveChatArgs = [
+        '--write-subs',
+        '--sub-format',
+        'json',
+        '--sub-lang',
+        'live_chat',
+      ];
+    }
     const args = [
       // '-j',
       // '--no-simulate',
@@ -41,6 +52,7 @@ export function downloadYouTubeVideo(
       '-S',
       '+codec:avc:m4a',
       ...downloadSectionsArgs,
+      ...downloadLiveChatArgs,
       '-o',
       `"${path.join(downloadPath, outputFormat)}"`,
       url,
@@ -68,7 +80,7 @@ export function downloadYouTubeVideo(
         // }
 
         // Regex to match the file path from "Merging formats into" message
-        const filePathRegex0 = /\[Merger\] Merging formats into "(.+)"/;
+        const filePathRegex0 = /\[Merger\] Merging formats into "(.+\.mp4)"/;
         const match0 = filePathRegex0.exec(stdout);
         if (match0) {
           resolve(match0[1]);
@@ -76,7 +88,8 @@ export function downloadYouTubeVideo(
         }
 
         // Regex to match the file path from "has already been downloaded" message
-        const filePathRegex1 = /\[download\] (.*) has already been downloaded/;
+        const filePathRegex1 =
+          /\[download\] (.*\.mp4) has already been downloaded/;
         const match1 = filePathRegex1.exec(stdout);
         if (match1) {
           resolve(match1[1]);
@@ -84,7 +97,7 @@ export function downloadYouTubeVideo(
         }
 
         // Regex to match the file path from "Destination" message
-        const filePathRegex2 = /\[download\] Destination: (.+)/;
+        const filePathRegex2 = /\[download\] Destination: (.+\.mp4)/;
         const match2 = filePathRegex2.exec(stdout);
         if (match2) {
           resolve(match2[1]);

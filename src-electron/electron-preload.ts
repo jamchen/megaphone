@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     url: string,
     startTime: string | undefined,
     endTime: string | undefined,
+    downloadLiveChat: boolean,
     progressCallback: YouTubeDownloadProgressCallback | undefined
   ) => {
     const callbackWrapper = (
@@ -62,6 +63,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       url,
       startTime: startTime,
       endTime: endTime,
+      downloadLiveChat,
     });
     ipcRenderer.off('download-youtbue-video-progress', callbackWrapper);
     return result;

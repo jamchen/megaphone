@@ -10,6 +10,7 @@ export const useProjectStore = defineStore('project', {
     videoSourceTab: 'standard',
     autoTranscribe: true as boolean,
     autoOverlaySubtitles: true as boolean,
+    overlayLiveChat: false as boolean,
   }),
 
   persist: {

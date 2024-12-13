@@ -102,6 +102,7 @@ interface ElectronAPI {
     url: string,
     startTime?: string,
     endTime?: string,
+    downloadLiveChat?: boolean,
     progressCallback?: YouTubeDownloadProgressCallback
   ) => Promise<string>;
   overlaySubtitles: (params: OverlaySubtitlesParams) => Promise<void>;

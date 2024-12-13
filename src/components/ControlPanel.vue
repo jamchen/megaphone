@@ -74,6 +74,11 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-toggle
+          v-model="overlayLiveChat"
+          label="合成直播聊天"
+          color="primary"
+        />
+        <q-toggle
           v-model="autoTranscribe"
           label="當影片下載完後自動轉錄"
           color="primary"
@@ -146,6 +151,7 @@ const {
   videoSourceTab,
   autoTranscribe,
   autoOverlaySubtitles,
+  overlayLiveChat,
 } = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
@@ -311,7 +317,8 @@ function formatDuration(ms: number): string {
 const downloadYouTubeVideoAndMaybeTranscribe = async (
   videoUrl: string,
   startTime: string | undefined = undefined,
-  endTime: string | undefined = undefined
+  endTime: string | undefined = undefined,
+  overlayLiveChat = false
 ) => {
   try {
     // Mark the start time
@@ -322,6 +329,7 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
       videoUrl,
       startTime,
       endTime,
+      overlayLiveChat,
       (progress) => {
         $q.loading.show({
           message: `下載YT影片: ${(progress.value * 100).toFixed(0)}%`,
@@ -468,7 +476,8 @@ const downloadYouTubeVideoSegment = async () => {
   await downloadYouTubeVideoAndMaybeTranscribe(
     youTubeVideoUrl.value,
     startTime.value,
-    endTime.value
+    endTime.value,
+    overlayLiveChat.value
   );
   $q.loading.hide();
 };

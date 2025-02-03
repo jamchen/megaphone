@@ -4,6 +4,30 @@ import { getExecutableBasePath, getYtDlpExecutablePath } from './path-utils';
 import { app } from 'electron';
 
 type DownloadProgressCallback = (progress: number) => void;
+
+const extractOutputPath = (stdout: string): string | undefined => {
+  // Regex to match the file path from "Merging formats into" message
+  const filePathRegex0 = /\[Merger\] Merging formats into "(.+\.mp4)"/;
+  const match0 = filePathRegex0.exec(stdout);
+  if (match0) {
+    return match0[1];
+  }
+
+  // Regex to match the file path from "has already been downloaded" message
+  const filePathRegex1 = /\[download\] (.*\.mp4) has already been downloaded/;
+  const match1 = filePathRegex1.exec(stdout);
+  if (match1) {
+    return match1[1];
+  }
+
+  // Regex to match the file path from "Destination" message
+  const filePathRegex2 = /\[download\] Destination: (.+\.mp4)/;
+  const match2 = filePathRegex2.exec(stdout);
+  if (match2) {
+    return match2[1];
+  }
+};
+
 /**
  * Downloads a YouTube video using yt-dlp with specified options.
  * @param url - The YouTube URL to download.
@@ -79,32 +103,12 @@ export function downloadYouTubeVideo(
         //   reject(err);
         // }
 
-        // Regex to match the file path from "Merging formats into" message
-        const filePathRegex0 = /\[Merger\] Merging formats into "(.+\.mp4)"/;
-        const match0 = filePathRegex0.exec(stdout);
-        if (match0) {
-          resolve(match0[1]);
-          return;
+        const outputFilePath = extractOutputPath(stdout);
+        if (outputFilePath) {
+          resolve(outputFilePath);
+        } else {
+          reject('Could not find file path in yt-dlp output');
         }
-
-        // Regex to match the file path from "has already been downloaded" message
-        const filePathRegex1 =
-          /\[download\] (.*\.mp4) has already been downloaded/;
-        const match1 = filePathRegex1.exec(stdout);
-        if (match1) {
-          resolve(match1[1]);
-          return;
-        }
-
-        // Regex to match the file path from "Destination" message
-        const filePathRegex2 = /\[download\] Destination: (.+\.mp4)/;
-        const match2 = filePathRegex2.exec(stdout);
-        if (match2) {
-          resolve(match2[1]);
-          return;
-        }
-
-        reject('Could not find file path in yt-dlp output');
       }
     );
     childProcess.stderr?.on('data', (data) => {

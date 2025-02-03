@@ -12,13 +12,13 @@
         align="left"
         narrow-indicator
       >
-        <q-tab name="standard" label="選擇或下載YT完整影片" />
-        <q-tab name="trim-yt-video" label="截取YT影片片段" />
+        <q-tab name="standard" label="電腦裡的影片" />
+        <q-tab name="trim-yt-video" label="YouTube" />
       </q-tabs>
       <q-separator inset />
       <q-card-section>
         <q-tab-panels v-model="videoSourceTab" animated>
-          <q-tab-panel name="standard">
+          <q-tab-panel name="standard" class="q-pa-sm">
             <div class="q-gutter-sm">
               <q-btn label="選擇影片" outline @click="selectVideoFile" />
               <input
@@ -28,14 +28,17 @@
                 style="display: none"
                 @change="changeVideoFile"
               />
+            </div>
+          </q-tab-panel>
+          <q-tab-panel name="trim-yt-video" class="q-pa-sm q-col-gutter-sm">
+            <div class="row">
               <q-btn
-                label="下載YT影片"
-                outline
+                label="下載完整YT影片"
+                color="primary"
                 @click="doDownloadYouTubeVideo"
               />
             </div>
-          </q-tab-panel>
-          <q-tab-panel name="trim-yt-video" class="q-col-gutter-sm">
+            <div class="row">或是下載片段</div>
             <div class="row">
               <q-input
                 class="col"

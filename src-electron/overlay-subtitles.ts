@@ -16,18 +16,20 @@ export const overlaySubtitles = ({
   inputVideo,
   subtitleFile,
   outputVideo,
+  forceStyle,
 }: OverlaySubtitlesParams): Promise<void> => {
   return new Promise((resolve, reject) => {
     const encodedSubtitleFile = encodeFilePath(subtitleFile);
-    const forceStyle =
-      'BorderStyle=4,BackColour=&H80000000,Outline=0,Shadow=0,FontSize=24';
+    // const forceStyle = 'BorderStyle=4,BackColour=&H80000000,Outline=0,Shadow=0,FontSize=24';
 
     const ffmpegArgs = [
       '-y',
       '-i',
       inputVideo,
       '-vf',
-      `subtitles='${encodedSubtitleFile}':force_style='${forceStyle}'`,
+      forceStyle
+        ? `subtitles='${encodedSubtitleFile}':force_style='${forceStyle}'`
+        : `subtitles='${encodedSubtitleFile}'`,
       outputVideo,
     ];
 

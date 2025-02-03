@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 import { createMenu } from './menu';
 import { downloadYouTubeVideo } from './yt-dlp';
+import fs from 'fs';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -61,13 +62,19 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 
 ipcMain.handle(
   'download-youtbue-video',
-  async (event, { url, startTime, endTime }) => {
-    return await downloadYouTubeVideo(url, startTime, endTime, (progress) => {
-      event.sender.send('download-youtbue-video-progress', {
-        url,
-        value: progress,
-      });
-    });
+  async (event, { url, startTime, endTime, downloadLiveChat }) => {
+    return await downloadYouTubeVideo(
+      url,
+      startTime,
+      endTime,
+      downloadLiveChat,
+      (progress) => {
+        event.sender.send('download-youtbue-video-progress', {
+          url,
+          value: progress,
+        });
+      }
+    );
   }
 );
 
@@ -77,6 +84,13 @@ ipcMain.handle('get-app-path', async (event, name) => {
 
 ipcMain.handle('show-item-in-folder', async (event, fullPath) => {
   return shell.showItemInFolder(fullPath);
+});
+
+ipcMain.handle('file-exists', async (event, filePath) => {
+  return await fs.promises
+    .access(filePath, fs.constants.F_OK)
+    .then(() => true)
+    .catch(() => false);
 });
 
 Menu.setApplicationMenu(createMenu());

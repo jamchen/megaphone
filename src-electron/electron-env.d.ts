@@ -62,6 +62,7 @@ interface OverlaySubtitlesParams {
   inputVideo: string;
   subtitleFile: string;
   outputVideo: string;
+  forceStyle?: string;
 }
 
 interface YouTubeDownloadProgress {
@@ -102,11 +103,19 @@ interface ElectronAPI {
     url: string,
     startTime?: string,
     endTime?: string,
+    downloadLiveChat?: boolean,
     progressCallback?: YouTubeDownloadProgressCallback
   ) => Promise<string>;
   overlaySubtitles: (params: OverlaySubtitlesParams) => Promise<void>;
   getAppPath: (name: string) => Promise<string>;
   showItemInFolder: (fullPath: string) => void;
+  fileExists: (filePath: string) => Promise<boolean>;
+  generateASS: (
+    liveChatFile: string,
+    outputAssFile: string,
+    startTime: string,
+    endTime: string
+  ) => Promise<void>;
 }
 
 interface Window {

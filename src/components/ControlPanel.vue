@@ -12,8 +12,8 @@
         align="left"
         narrow-indicator
       >
-        <q-tab name="standard" label="製作完整影片字幕" />
-        <q-tab name="trim-yt-video" label="截取YT影片" />
+        <q-tab name="standard" label="選擇或下載YT完整影片" />
+        <q-tab name="trim-yt-video" label="截取YT影片片段" />
       </q-tabs>
       <q-separator inset />
       <q-card-section>
@@ -73,6 +73,11 @@
             </div>
           </q-tab-panel>
         </q-tab-panels>
+        <q-toggle
+          v-model="overlayLiveChat"
+          label="合成直播聊天"
+          color="primary"
+        />
         <q-toggle
           v-model="autoTranscribe"
           label="當影片下載完後自動轉錄"
@@ -146,6 +151,7 @@ const {
   videoSourceTab,
   autoTranscribe,
   autoOverlaySubtitles,
+  overlayLiveChat,
 } = storeToRefs(projectStore);
 const subtitlesStore = useSubtitlesStore();
 const { clearSubtitles, addSubtitle } = subtitlesStore;
@@ -161,6 +167,8 @@ const {
   showSaveDialog,
   overlaySubtitles,
   showItemInFolder,
+  fileExists,
+  generateASS,
 } = window.electronAPI;
 
 const videoFileInput = ref<HTMLInputElement | null>(null);
@@ -311,17 +319,18 @@ function formatDuration(ms: number): string {
 const downloadYouTubeVideoAndMaybeTranscribe = async (
   videoUrl: string,
   startTime: string | undefined = undefined,
-  endTime: string | undefined = undefined
+  endTime: string | undefined = undefined,
+  overlayLiveChat = false
 ) => {
   try {
     // Mark the start time
     performance.mark('start-download');
-
     console.log('Downloading YouTube video:', videoUrl);
     const ytVideoFilePath = await downloadYouTubeVideo(
       videoUrl,
       startTime,
       endTime,
+      overlayLiveChat,
       (progress) => {
         $q.loading.show({
           message: `下載YT影片: ${(progress.value * 100).toFixed(0)}%`,
@@ -335,6 +344,21 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
 
     // Mark the end time for download
     performance.mark('end-download');
+
+    if (videoFilePath.value && overlayLiveChat && startTime && endTime) {
+      try {
+        $q.loading.show({
+          message: '合成直播聊天',
+        });
+        videoFilePath.value = await overlayLiveChatToVideo(
+          videoFilePath.value,
+          startTime,
+          endTime
+        );
+      } catch (e) {
+        notifyError(e);
+      }
+    }
 
     if (autoTranscribe.value) {
       // Mark the start time for audio extraction
@@ -468,10 +492,31 @@ const downloadYouTubeVideoSegment = async () => {
   await downloadYouTubeVideoAndMaybeTranscribe(
     youTubeVideoUrl.value,
     startTime.value,
-    endTime.value
+    endTime.value,
+    overlayLiveChat.value
   );
   $q.loading.hide();
 };
+
+async function overlayLiveChatToVideo(
+  videoFilePath: string,
+  startTime: string,
+  endTime: string
+) {
+  const liveChatFilePath = videoFilePath.replace('.mp4', '.live_chat.json');
+  const liveChatAss = videoFilePath.replace('.mp4', '.ass');
+  const liveChatFileExists = await fileExists(liveChatFilePath);
+  console.log('Live chat file exists:', liveChatFileExists, liveChatFilePath);
+  await generateASS(liveChatFilePath, liveChatAss, startTime, endTime);
+
+  const liveChatVideoPath = videoFilePath.replace('.mp4', '.live_chat.mp4');
+  await overlaySubtitles({
+    inputVideo: videoFilePath,
+    subtitleFile: liveChatAss,
+    outputVideo: liveChatVideoPath,
+  });
+  return liveChatVideoPath;
+}
 
 // TODO: DRY this function
 function getFileExtension(filePath: string): string {
@@ -518,6 +563,8 @@ const doOverlaySubtitles = async () => {
         inputVideo: videoFilePath.value,
         subtitleFile: tempSubtitlesPath,
         outputVideo: outputFilePath,
+        forceStyle:
+          'BorderStyle=4,BackColour=&H80000000,Outline=0,Shadow=0,FontSize=24',
       });
 
       showItemInFolder(outputFilePath);

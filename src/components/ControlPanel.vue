@@ -12,8 +12,8 @@
         align="left"
         narrow-indicator
       >
-        <q-tab name="standard" label="製作完整影片字幕" />
-        <q-tab name="trim-yt-video" label="截取YT影片" />
+        <q-tab name="standard" label="選擇或下載YT完整影片" />
+        <q-tab name="trim-yt-video" label="截取YT影片片段" />
       </q-tabs>
       <q-separator inset />
       <q-card-section>

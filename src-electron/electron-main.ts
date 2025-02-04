@@ -73,6 +73,12 @@ ipcMain.handle(
           url,
           value: progress,
         });
+      },
+      (downloadedFrames) => {
+        event.sender.send('download-youtbue-frame-count', {
+          url,
+          value: downloadedFrames,
+        });
       }
     );
   }

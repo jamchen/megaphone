@@ -74,6 +74,15 @@ type YouTubeDownloadProgressCallback = (
   progress: YouTubeDownloadProgress
 ) => void;
 
+interface YouTubeDownloadedFrames {
+  url: string;
+  value: number;
+}
+
+type YouTubeDownloadedFramesCallback = (
+  progress: YouTubeDownloadedFrames
+) => void;
+
 // Define the ElectronAPI interface
 interface ElectronAPI {
   createObjectURL: (filePath: string) => string;
@@ -104,7 +113,8 @@ interface ElectronAPI {
     startTime?: string,
     endTime?: string,
     downloadLiveChat?: boolean,
-    progressCallback?: YouTubeDownloadProgressCallback
+    progressCallback?: YouTubeDownloadProgressCallback,
+    downloadedFramesCallback?: YouTubeDownloadedFramesCallback
   ) => Promise<string>;
   overlaySubtitles: (params: OverlaySubtitlesParams) => Promise<void>;
   getAppPath: (name: string) => Promise<string>;

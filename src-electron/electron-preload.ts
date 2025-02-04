@@ -49,7 +49,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     startTime: string | undefined,
     endTime: string | undefined,
     downloadLiveChat: boolean,
-    progressCallback: YouTubeDownloadProgressCallback | undefined
+    progressCallback: YouTubeDownloadProgressCallback | undefined,
+    downloadedFramesCallback: YouTubeDownloadedFramesCallback | undefined
   ) => {
     const callbackWrapper = (
       _: IpcRendererEvent,
@@ -60,6 +61,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
     };
     ipcRenderer.on('download-youtbue-video-progress', callbackWrapper);
+    const downloadFramesCallbackWrapper = (
+      _: IpcRendererEvent,
+      frames: YouTubeDownloadedFrames
+    ) => {
+      if (downloadedFramesCallback) {
+        downloadedFramesCallback(frames);
+      }
+    };
+    ipcRenderer.on(
+      'download-youtbue-frame-count',
+      downloadFramesCallbackWrapper
+    );
     const result = await ipcRenderer.invoke('download-youtbue-video', {
       url,
       startTime: startTime,
@@ -67,6 +80,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       downloadLiveChat,
     });
     ipcRenderer.off('download-youtbue-video-progress', callbackWrapper);
+    ipcRenderer.off(
+      'download-youtbue-frame-count',
+      downloadFramesCallbackWrapper
+    );
     return result;
   },
   overlaySubtitles: overlaySubtitles,

@@ -338,6 +338,11 @@ const downloadYouTubeVideoAndMaybeTranscribe = async (
         $q.loading.show({
           message: `下載YT影片: ${(progress.value * 100).toFixed(0)}%`,
         });
+      },
+      (downloadedFrameCount) => {
+        $q.loading.show({
+          message: `下載YT影片: ${downloadedFrameCount.value} Frames`,
+        });
       }
     );
     console.log('Downloaded YouTube video:', ytVideoFilePath);

@@ -4,6 +4,7 @@ import { getExecutableBasePath, getYtDlpExecutablePath } from './path-utils';
 import { app } from 'electron';
 
 type DownloadProgressCallback = (progress: number) => void;
+type DownloadedFramesCallback = (frames: number) => void;
 
 const extractOutputPath = (stdout: string): string | undefined => {
   // Regex to match the file path from "Merging formats into" message
@@ -38,7 +39,8 @@ export function downloadYouTubeVideo(
   startTime: string | undefined = undefined,
   endTime: string | undefined = undefined,
   downloadLiveChat: boolean = false,
-  downloadProgressCallback: DownloadProgressCallback | undefined = undefined
+  downloadProgressCallback: DownloadProgressCallback | undefined = undefined,
+  downloadedFramesCallback: DownloadedFramesCallback | undefined = undefined
 ): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const command = getYtDlpExecutablePath();
@@ -113,6 +115,17 @@ export function downloadYouTubeVideo(
     );
     childProcess.stderr?.on('data', (data) => {
       console.error(`stderr: ${data}`);
+      if (!downloadedFramesCallback) {
+        return;
+      }
+      // Extract the frame count from the log
+      const frameCountRegex = /^frame=\s*(\d+)/;
+      const frameCountMatch = frameCountRegex.exec(data);
+      if (frameCountMatch) {
+        const frames = parseInt(frameCountMatch[1], 10);
+        console.log(`Downloaded frames: ${frames}`);
+        downloadedFramesCallback(frames);
+      }
     });
     childProcess.stdout?.on('data', (data) => {
       console.log(`stdout: ${data}`);

@@ -192,11 +192,14 @@ module.exports = configure(function (ctx) {
         // OS X / Mac App Store
         // appBundleId: '',
         // appCategoryType: '',
-        // osxSign: '',
+        osxSign: {
+          identity: 'TA-CHI KUO (NJ68ZY3MNE)',
+        },
         // protocol: 'myapp://path',
         // Windows only
         // win32metadata: { ... }
         extraResource: ['python/scripts', `bin/${standaloneExecutablePath}`],
+        overwrite: true,
       },
 
       builder: {

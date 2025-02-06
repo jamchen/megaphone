@@ -55,4 +55,12 @@ pip freeze > requirements.txt
 quasar build -m electron -T darwin -A arm64
 ```
 
+```
+quasar build -m electron -T darwin -A x64
+```
+
+```
+quasar build -m electron -T win32 -A x64
+```
+
 ref: https://quasar.dev/quasar-cli-vite/commands-list#build

@@ -194,6 +194,13 @@ module.exports = configure(function (ctx) {
         // appCategoryType: '',
         osxSign: {
           identity: 'TA-CHI KUO (NJ68ZY3MNE)',
+          ignore: (file) => {
+            const regex = new RegExp(`${standaloneExecutablePath}`);
+            if (regex.test(file)) {
+              // console.log(`jamx: ignore file: ${file}`);
+              return true;
+            }
+          },
         },
         // protocol: 'myapp://path',
         // Windows only

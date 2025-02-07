@@ -74,7 +74,7 @@ export function downloadYouTubeVideo(
       // '--print',
       // 'filename',
       '--ffmpeg-location',
-      getExecutableBasePath(),
+      `"${getExecutableBasePath()}"`,
       '-S',
       '+codec:avc:m4a',
       ...downloadSectionsArgs,
@@ -86,7 +86,7 @@ export function downloadYouTubeVideo(
     console.log('yt-dlp args', args);
     console.log('yt-dlp command:', `${command} ${args.join(' ')}`);
     const childProcess = exec(
-      `${command} ${args.join(' ')}`,
+      `"${command}" ${args.join(' ')}`,
       (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing ffmpeg: ${error.message}`);
